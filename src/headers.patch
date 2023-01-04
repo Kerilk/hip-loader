@@ -1,0 +1,188 @@
+diff -u4 -r include/hip/amd_detail/amd_hip_vector_types.h include-modified/hip/amd_detail/amd_hip_vector_types.h
+--- include/hip/amd_detail/amd_hip_vector_types.h	2023-01-04 15:31:11.095804284 -0600
++++ include-modified/hip/amd_detail/amd_hip_vector_types.h	2022-12-12 15:50:40.212227685 -0600
+@@ -1384,20 +1384,20 @@
+             T w;\
+         } CUDA_name##4;
+ #endif
+ 
+-__MAKE_VECTOR_TYPE__(uchar, unsigned char);
+-__MAKE_VECTOR_TYPE__(char, char);
+-__MAKE_VECTOR_TYPE__(ushort, unsigned short);
+-__MAKE_VECTOR_TYPE__(short, short);
+-__MAKE_VECTOR_TYPE__(uint, unsigned int);
+-__MAKE_VECTOR_TYPE__(int, int);
+-__MAKE_VECTOR_TYPE__(ulong, unsigned long);
+-__MAKE_VECTOR_TYPE__(long, long);
+-__MAKE_VECTOR_TYPE__(ulonglong, unsigned long long);
+-__MAKE_VECTOR_TYPE__(longlong, long long);
+-__MAKE_VECTOR_TYPE__(float, float);
+-__MAKE_VECTOR_TYPE__(double, double);
++__MAKE_VECTOR_TYPE__(uchar, unsigned char)
++__MAKE_VECTOR_TYPE__(char, char)
++__MAKE_VECTOR_TYPE__(ushort, unsigned short)
++__MAKE_VECTOR_TYPE__(short, short)
++__MAKE_VECTOR_TYPE__(uint, unsigned int)
++__MAKE_VECTOR_TYPE__(int, int)
++__MAKE_VECTOR_TYPE__(ulong, unsigned long)
++__MAKE_VECTOR_TYPE__(long, long)
++__MAKE_VECTOR_TYPE__(ulonglong, unsigned long long)
++__MAKE_VECTOR_TYPE__(longlong, long long)
++__MAKE_VECTOR_TYPE__(float, float)
++__MAKE_VECTOR_TYPE__(double, double)
+ 
+ #else // !defined(__has_attribute)
+ 
+ #if defined(_MSC_VER)
+@@ -2478,65 +2478,65 @@
+     return r;                                                                                      \
+   }
+ #endif
+ 
+-DECLOP_MAKE_ONE_COMPONENT(unsigned char, uchar1);
+-DECLOP_MAKE_TWO_COMPONENT(unsigned char, uchar2);
+-DECLOP_MAKE_THREE_COMPONENT(unsigned char, uchar3);
+-DECLOP_MAKE_FOUR_COMPONENT(unsigned char, uchar4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(signed char, char1);
+-DECLOP_MAKE_TWO_COMPONENT(signed char, char2);
+-DECLOP_MAKE_THREE_COMPONENT(signed char, char3);
+-DECLOP_MAKE_FOUR_COMPONENT(signed char, char4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(unsigned short, ushort1);
+-DECLOP_MAKE_TWO_COMPONENT(unsigned short, ushort2);
+-DECLOP_MAKE_THREE_COMPONENT(unsigned short, ushort3);
+-DECLOP_MAKE_FOUR_COMPONENT(unsigned short, ushort4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(signed short, short1);
+-DECLOP_MAKE_TWO_COMPONENT(signed short, short2);
+-DECLOP_MAKE_THREE_COMPONENT(signed short, short3);
+-DECLOP_MAKE_FOUR_COMPONENT(signed short, short4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(unsigned int, uint1);
+-DECLOP_MAKE_TWO_COMPONENT(unsigned int, uint2);
+-DECLOP_MAKE_THREE_COMPONENT(unsigned int, uint3);
+-DECLOP_MAKE_FOUR_COMPONENT(unsigned int, uint4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(signed int, int1);
+-DECLOP_MAKE_TWO_COMPONENT(signed int, int2);
+-DECLOP_MAKE_THREE_COMPONENT(signed int, int3);
+-DECLOP_MAKE_FOUR_COMPONENT(signed int, int4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(float, float1);
+-DECLOP_MAKE_TWO_COMPONENT(float, float2);
+-DECLOP_MAKE_THREE_COMPONENT(float, float3);
+-DECLOP_MAKE_FOUR_COMPONENT(float, float4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(double, double1);
+-DECLOP_MAKE_TWO_COMPONENT(double, double2);
+-DECLOP_MAKE_THREE_COMPONENT(double, double3);
+-DECLOP_MAKE_FOUR_COMPONENT(double, double4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(unsigned long, ulong1);
+-DECLOP_MAKE_TWO_COMPONENT(unsigned long, ulong2);
+-DECLOP_MAKE_THREE_COMPONENT(unsigned long, ulong3);
+-DECLOP_MAKE_FOUR_COMPONENT(unsigned long, ulong4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(signed long, long1);
+-DECLOP_MAKE_TWO_COMPONENT(signed long, long2);
+-DECLOP_MAKE_THREE_COMPONENT(signed long, long3);
+-DECLOP_MAKE_FOUR_COMPONENT(signed long, long4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(unsigned long long, ulonglong1);
+-DECLOP_MAKE_TWO_COMPONENT(unsigned long long, ulonglong2);
+-DECLOP_MAKE_THREE_COMPONENT(unsigned long long, ulonglong3);
+-DECLOP_MAKE_FOUR_COMPONENT(unsigned long long, ulonglong4);
+-
+-DECLOP_MAKE_ONE_COMPONENT(signed long long, longlong1);
+-DECLOP_MAKE_TWO_COMPONENT(signed long long, longlong2);
+-DECLOP_MAKE_THREE_COMPONENT(signed long long, longlong3);
+-DECLOP_MAKE_FOUR_COMPONENT(signed long long, longlong4);
++DECLOP_MAKE_ONE_COMPONENT(unsigned char, uchar1)
++DECLOP_MAKE_TWO_COMPONENT(unsigned char, uchar2)
++DECLOP_MAKE_THREE_COMPONENT(unsigned char, uchar3)
++DECLOP_MAKE_FOUR_COMPONENT(unsigned char, uchar4)
++
++DECLOP_MAKE_ONE_COMPONENT(signed char, char1)
++DECLOP_MAKE_TWO_COMPONENT(signed char, char2)
++DECLOP_MAKE_THREE_COMPONENT(signed char, char3)
++DECLOP_MAKE_FOUR_COMPONENT(signed char, char4)
++
++DECLOP_MAKE_ONE_COMPONENT(unsigned short, ushort1)
++DECLOP_MAKE_TWO_COMPONENT(unsigned short, ushort2)
++DECLOP_MAKE_THREE_COMPONENT(unsigned short, ushort3)
++DECLOP_MAKE_FOUR_COMPONENT(unsigned short, ushort4)
++
++DECLOP_MAKE_ONE_COMPONENT(signed short, short1)
++DECLOP_MAKE_TWO_COMPONENT(signed short, short2)
++DECLOP_MAKE_THREE_COMPONENT(signed short, short3)
++DECLOP_MAKE_FOUR_COMPONENT(signed short, short4)
++
++DECLOP_MAKE_ONE_COMPONENT(unsigned int, uint1)
++DECLOP_MAKE_TWO_COMPONENT(unsigned int, uint2)
++DECLOP_MAKE_THREE_COMPONENT(unsigned int, uint3)
++DECLOP_MAKE_FOUR_COMPONENT(unsigned int, uint4)
++
++DECLOP_MAKE_ONE_COMPONENT(signed int, int1)
++DECLOP_MAKE_TWO_COMPONENT(signed int, int2)
++DECLOP_MAKE_THREE_COMPONENT(signed int, int3)
++DECLOP_MAKE_FOUR_COMPONENT(signed int, int4)
++
++DECLOP_MAKE_ONE_COMPONENT(float, float1)
++DECLOP_MAKE_TWO_COMPONENT(float, float2)
++DECLOP_MAKE_THREE_COMPONENT(float, float3)
++DECLOP_MAKE_FOUR_COMPONENT(float, float4)
++
++DECLOP_MAKE_ONE_COMPONENT(double, double1)
++DECLOP_MAKE_TWO_COMPONENT(double, double2)
++DECLOP_MAKE_THREE_COMPONENT(double, double3)
++DECLOP_MAKE_FOUR_COMPONENT(double, double4)
++
++DECLOP_MAKE_ONE_COMPONENT(unsigned long, ulong1)
++DECLOP_MAKE_TWO_COMPONENT(unsigned long, ulong2)
++DECLOP_MAKE_THREE_COMPONENT(unsigned long, ulong3)
++DECLOP_MAKE_FOUR_COMPONENT(unsigned long, ulong4)
++
++DECLOP_MAKE_ONE_COMPONENT(signed long, long1)
++DECLOP_MAKE_TWO_COMPONENT(signed long, long2)
++DECLOP_MAKE_THREE_COMPONENT(signed long, long3)
++DECLOP_MAKE_FOUR_COMPONENT(signed long, long4)
++
++DECLOP_MAKE_ONE_COMPONENT(unsigned long long, ulonglong1)
++DECLOP_MAKE_TWO_COMPONENT(unsigned long long, ulonglong2)
++DECLOP_MAKE_THREE_COMPONENT(unsigned long long, ulonglong3)
++DECLOP_MAKE_FOUR_COMPONENT(unsigned long long, ulonglong4)
++
++DECLOP_MAKE_ONE_COMPONENT(signed long long, longlong1)
++DECLOP_MAKE_TWO_COMPONENT(signed long long, longlong2)
++DECLOP_MAKE_THREE_COMPONENT(signed long long, longlong3)
++DECLOP_MAKE_FOUR_COMPONENT(signed long long, longlong4)
+ 
+ #endif
+diff -u4 -r include/hip/hip_runtime_api.h include-modified/hip/hip_runtime_api.h
+--- include/hip/hip_runtime_api.h	2023-01-04 15:31:11.107804283 -0600
++++ include-modified/hip/hip_runtime_api.h	2022-12-12 15:42:25.075658750 -0600
+@@ -30,9 +30,9 @@
+ #ifndef HIP_INCLUDE_HIP_HIP_RUNTIME_API_H
+ #define HIP_INCLUDE_HIP_HIP_RUNTIME_API_H
+ 
+ 
+-#include <string.h>  // for getDeviceProp
++//#include <string.h>  // for getDeviceProp
+ #include <hip/hip_version.h>
+ #include <hip/hip_common.h>
+ 
+ enum {
+@@ -471,10 +471,10 @@
+  */
+ 
+ #if (defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)) && !(defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__))
+ 
+-#include <stdint.h>
+-#include <stddef.h>
++//#include <stdint.h>
++//#include <stddef.h>
+ #ifndef GENERIC_GRID_LAUNCH
+ #define GENERIC_GRID_LAUNCH 1
+ #endif
+ #include <hip/amd_detail/host_defines.h>
