@@ -19,6 +19,8 @@ $parser.parse(preprocessed_sources_libc)
 
   preprocessed_sources_hip_api = $cpp.preprocess(<<EOF).gsub(/^#.*?$/, '')
 #include <hip/hip_runtime_api.h>
+#include <hip/hiprtc.h>
+#include <hip/hip_runtime_load_api.h>
 EOF
 begin
   ast = $parser.parse(preprocessed_sources_hip_api)

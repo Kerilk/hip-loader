@@ -1,5 +1,5 @@
-diff -u4 -r include/hip/amd_detail/amd_hip_vector_types.h include-modified/hip/amd_detail/amd_hip_vector_types.h
---- include/hip/amd_detail/amd_hip_vector_types.h	2023-01-04 15:31:11.095804284 -0600
+diff -u4 -r --new-file include/hip/amd_detail/amd_hip_vector_types.h include-modified/hip/amd_detail/amd_hip_vector_types.h
+--- include/hip/amd_detail/amd_hip_vector_types.h	2023-01-05 12:09:58.383407034 -0600
 +++ include-modified/hip/amd_detail/amd_hip_vector_types.h	2022-12-12 15:50:40.212227685 -0600
 @@ -1384,20 +1384,20 @@
              T w;\
@@ -159,8 +159,22 @@ diff -u4 -r include/hip/amd_detail/amd_hip_vector_types.h include-modified/hip/a
 +DECLOP_MAKE_FOUR_COMPONENT(signed long long, longlong4)
  
  #endif
-diff -u4 -r include/hip/hip_runtime_api.h include-modified/hip/hip_runtime_api.h
---- include/hip/hip_runtime_api.h	2023-01-04 15:31:11.107804283 -0600
+diff -u4 -r --new-file include/hip/hiprtc.h include-modified/hip/hiprtc.h
+--- include/hip/hiprtc.h	2023-01-05 12:09:58.387407034 -0600
++++ include-modified/hip/hiprtc.h	2023-01-05 10:36:53.910185513 -0600
+@@ -36,9 +36,9 @@
+ #ifdef __cplusplus
+ extern "C" {
+ #endif /* __cplusplus */
+ 
+-#include <stdlib.h>
++//#include <stdlib.h>
+ 
+ #if !defined(_WIN32)
+ #pragma GCC visibility push (default)
+ #endif
+diff -u4 -r --new-file include/hip/hip_runtime_api.h include-modified/hip/hip_runtime_api.h
+--- include/hip/hip_runtime_api.h	2023-01-05 12:09:58.387407034 -0600
 +++ include-modified/hip/hip_runtime_api.h	2022-12-12 15:42:25.075658750 -0600
 @@ -30,9 +30,9 @@
  #ifndef HIP_INCLUDE_HIP_HIP_RUNTIME_API_H
@@ -186,3 +200,98 @@ diff -u4 -r include/hip/hip_runtime_api.h include-modified/hip/hip_runtime_api.h
  #define GENERIC_GRID_LAUNCH 1
  #endif
  #include <hip/amd_detail/host_defines.h>
+diff -u4 -r --new-file include/hip/hip_runtime_load_api.h include-modified/hip/hip_runtime_load_api.h
+--- include/hip/hip_runtime_load_api.h	1969-12-31 19:00:00.000000000 -0500
++++ include-modified/hip/hip_runtime_load_api.h	2023-01-05 11:59:31.847480018 -0600
+@@ -0,0 +1,91 @@
++
++#ifdef __cplusplus
++extern "C" {
++#endif /* __cplusplus */
++
++extern void **__hipRegisterFatBinary(
++    const void *data);
++
++
++extern void __hipRegisterFunction(
++    void         **modules,
++    const void    *hostFunction,
++    char          *deviceFunction,
++    const char    *deviceName,
++    unsigned int   threadLimit,
++    uint3         *tid,
++    uint3         *bid,
++    dim3          *blockDim,
++    dim3          *gridDim,
++    int           *wSize);
++
++extern void __hipRegisterManagedVar(
++    void      **modules,    // Pointer to hip module returned from __hipRegisterFatbinary
++    void      **pointer,    // Pointer to a chunk of managed memory with size \p size and alignment \p
++                            // align HIP runtime allocates such managed memory and assign it to \p pointer
++    void       *init_value, // Initial value to be copied into \p pointer
++    const char *name,       // Name of the variable in code object
++    size_t      size,
++    unsigned    align);
++
++extern void __hipRegisterSurface(
++    void **modules,   // The device modules containing code object
++    void  *var,       // The shadow variable in host code
++    char  *hostVar,   // Variable name in host code
++    char  *deviceVar, // Variable name in device code
++    int    type,
++    int    ext);
++
++
++extern void __hipRegisterTexture(
++    void **modules,   // The device modules containing code object
++    void  *var,       // The shadow variable in host code
++    char  *hostVar,   // Variable name in host code
++    char  *deviceVar, // Variable name in device code
++    int    type,
++    int    norm,
++    int    ext);
++
++extern void __hipRegisterVar(
++    void   **modules,   // The device modules containing code object
++    void    *var,       // The shadow variable in host code
++    char    *hostVar,   // Variable name in host code
++    char    *deviceVar, // Variable name in device code
++    int      ext,       // Whether this variable is external
++    size_t   size,      // Size of the variable
++    int      constant,  // Whether this variable is constant
++    int      global);   // Unknown, always 0
++
++extern void __hipUnregisterFatBinary(
++    void** modules);
++
++extern const char* hipGetCmdName(
++    uint32_t id);
++
++typedef enum {
++  ACTIVITY_DOMAIN_HSA_API = 0, /* HSA API domain */
++  ACTIVITY_DOMAIN_HSA_OPS = 1, /* HSA async activity domain */
++  ACTIVITY_DOMAIN_HIP_OPS = 2, /* HIP async activity domain */
++  ACTIVITY_DOMAIN_HCC_OPS =
++      ACTIVITY_DOMAIN_HIP_OPS, /* HCC async activity domain */
++  ACTIVITY_DOMAIN_HIP_VDI =
++      ACTIVITY_DOMAIN_HIP_OPS, /* HIP VDI async activity domain */
++  ACTIVITY_DOMAIN_HIP_API = 3, /* HIP API domain */
++  ACTIVITY_DOMAIN_KFD_API = 4, /* KFD API domain */
++  ACTIVITY_DOMAIN_EXT_API = 5, /* External ID domain */
++  ACTIVITY_DOMAIN_ROCTX = 6,   /* ROCTX domain */
++  ACTIVITY_DOMAIN_HSA_EVT = 7, /* HSA events */
++  ACTIVITY_DOMAIN_NUMBER
++} activity_domain_t;
++
++typedef int hipRegisterTracerCallback_callback_t(
++    activity_domain_t domain,
++    uint32_t operation_id,
++    void* data);
++
++extern void hipRegisterTracerCallback(
++    hipRegisterTracerCallback_callback_t *function);
++
++#ifdef __cplusplus
++}
++#endif /* __cplusplus */
