@@ -1,0 +1,29 @@
+---
+hipCtxGetCacheConfig:
+  type: :current_context
+hipCtxSetCacheConfig:
+  type: :current_context
+hipCtxSetSharedMemConfig:
+  type: :current_context
+hipCtxGetSharedMemConfig:
+  type: :current_context
+hipCtxSynchronize:
+  type: :current_context
+hipCtxGetFlags:
+  type: :current_context
+hipCtxEnablePeerAccess:
+  type: :current_context
+hipCtxDisablePeerAccess:
+  type: :current_context
+hipDevicePrimaryCtxGetState:
+  type: hipDevice_t
+  name: dev
+hipDevicePrimaryCtxRelease:
+  type: hipDevice_t
+  name: dev
+hipDevicePrimaryCtxReset:
+  type: hipDevice_t
+  name: dev
+hipDevicePrimaryCtxSetFlags:
+  type: hipDevice_t
+  name: dev
