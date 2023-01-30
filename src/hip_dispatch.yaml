@@ -1,20 +1,57 @@
 ---
-hipCtxGetCacheConfig:
-  type: :current_context
-hipCtxSetCacheConfig:
-  type: :current_context
-hipCtxSetSharedMemConfig:
-  type: :current_context
-hipCtxGetSharedMemConfig:
-  type: :current_context
-hipCtxSynchronize:
-  type: :current_context
-hipCtxGetFlags:
+#hipChooseDevice
+#hipCtxCreate
+#hipCtxDestroy
+hipCtxDisablePeerAccess:
   type: :current_context
 hipCtxEnablePeerAccess:
   type: :current_context
-hipCtxDisablePeerAccess:
+hipCtxGetApiVersion:
+  type: hipCtx_t
+  name: ctx
+hipCtxGetCacheConfig:
   type: :current_context
+#hipCtxGetCurrent
+#hipCtxGetDevice
+hipCtxGetFlags:
+  type: :current_context
+hipCtxGetSharedMemConfig:
+  type: :current_context
+#hipCtxPopCurrent
+#hipCtxPushCurrent
+hipCtxSetCacheConfig:
+  type: :current_context
+#hipCtxSetCurrent
+hipCtxSetSharedMemConfig:
+  type: :current_context
+hipCtxSynchronize:
+  type: :current_context
+#hipDeviceCanAccessPeer
+hipDeviceComputeCapability:
+  type: hipDevice_t
+  name: device
+#hipDeviceDisablePeerAccess
+#hipDeviceEnablePeerAccess
+#hipDeviceGet
+hipDeviceGetAttribute:
+  type: :device_id
+  name: deviceId
+#hipDeviceGetByPCIBusId
+hipDeviceGetCacheConfig:
+  type: :current_device
+hipDeviceGetStreamPriorityRange:
+  type: :current_device
+hipDeviceGetLimit:
+  type: :current_device
+hipDeviceGetName:
+  type: hipDevice_t
+  name: device
+hipDeviceGetPCIBusId:
+  type: :device_id
+  name: device
+hipDeviceGetSharedMemConfig:
+  type: :current_device
+#hipDeviceGetP2PAttribute
 hipDevicePrimaryCtxGetState:
   type: hipDevice_t
   name: dev
@@ -24,6 +61,438 @@ hipDevicePrimaryCtxRelease:
 hipDevicePrimaryCtxReset:
   type: hipDevice_t
   name: dev
+#hipDevicePrimaryCtxRetain
 hipDevicePrimaryCtxSetFlags:
   type: hipDevice_t
   name: dev
+hipDeviceReset:
+  type: :current_device
+hipDeviceSetCacheConfig:
+  type: :current_device
+hipDeviceSetSharedMemConfig:
+  type: :current_device
+hipDeviceSynchronize:
+  type: :current_device
+hipDeviceTotalMem:
+  type: hipDevice_t
+  name: device
+hipDriverGetVersion:
+  type: :current_device
+#hipEventCreate
+#hipEventCreateWithFlags
+#hipEventDestroy
+hipEventElapsedTime:
+  type: hipEvent_t
+  name: start
+hipEventQuery:
+  type: hipEvent_t
+  name: event
+hipEventRecord:
+  type: hipEvent_t
+  name: event
+hipEventSynchronize:
+  type: hipEvent_t
+  name: event
+#hipExtGetLinkTypeAndHopCount
+#hipExtLaunchMultiKernelMultiDevice
+hipExtMallocWithFlags:
+  type: :current_device
+#hipExtModuleLaunchKernel
+#hipExtLaunchKernel
+#hipFree
+#hipFreeArray
+#hipFuncSetAttribute
+#hipFuncSetCacheConfig
+#hipFuncSetSharedMemConfig
+#hipGetDevice
+#hipGetDeviceCount
+#hipGetDeviceProperties
+#hipGetErrorName
+#hipGetErrorString
+#hipGetLastError
+#hipMemAdvise
+#hipMemAllocHost
+#hipHostAlloc
+#hipHostFree
+#hipHostGetDevicePointer
+#hipHostGetFlags
+#hipHostMalloc
+#hipHostRegister
+#hipHostUnregister
+#hipInit
+#hipIpcCloseMemHandle
+#hipIpcGetMemHandle
+#hipIpcOpenMemHandle
+#hipIpcGetEventHandle
+#hipIpcOpenEventHandle
+#hipMalloc
+#hipMalloc3D
+#hipMalloc3DArray
+#hipMallocManaged
+#hipArrayCreate
+#hipArray3DCreate
+#hipMallocArray
+#hipMallocPitch
+#hipMemAllocPitch
+#hipMemcpy
+#hipMemcpyWithStream
+#hipMemcpyParam2D
+#hipMemcpy2D
+#hipMemcpy2DAsync
+#hipMemcpy2DToArray
+#hipMemcpy3D
+#hipMemcpy3DAsync
+#hipDrvMemcpy3D
+#hipDrvMemcpy3DAsync
+#hipMemcpyAsync
+#hipMemcpyDtoD
+#hipMemcpyDtoDAsync
+#hipMemcpyDtoH
+#hipMemcpyDtoHAsync
+#hipMemcpyFromSymbol
+#hipMemcpyFromSymbolAsync
+#hipMemcpyHtoD
+#hipMemcpyHtoDAsync
+#hipMemcpyPeer
+#hipMemcpyPeerAsync
+#hipMemcpyToArray
+#hipMemcpyFromArray
+#hipMemcpyToSymbol
+#hipMemcpyToSymbolAsync
+#hipMemGetAddressRange
+#hipGetSymbolAddress
+#hipGetSymbolSize
+#hipMemGetInfo
+#hipMemPrefetchAsync
+#hipMemPtrGetInfo
+#hipMemRangeGetAttribute
+#hipMemRangeGetAttributes
+#hipMemset
+#hipMemsetAsync
+#hipMemsetD8
+#hipMemsetD8Async
+#hipMemsetD16
+#hipMemsetD16Async
+#hipMemsetD32
+#hipMemsetD32Async
+#hipMemset2D
+#hipMemset2DAsync
+#hipMemset3D
+#hipMemset3DAsync
+#hipModuleGetFunction
+#hipModuleGetGlobal
+#hipModuleGetTexRef
+#hipModuleLaunchKernel
+#hipModuleLaunchKernelExt
+#hipLaunchCooperativeKernel
+#hipLaunchCooperativeKernelMultiDevice
+#hipModuleLoad
+#hipModuleLoadData
+#hipModuleLoadDataEx
+#hipModuleUnload
+#hipModuleOccupancyMaxPotentialBlockSize
+#hipModuleOccupancyMaxPotentialBlockSizeWithFlags
+#hipModuleOccupancyMaxActiveBlocksPerMultiprocessor
+#hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+#hipOccupancyMaxPotentialBlockSize
+#hipOccupancyMaxActiveBlocksPerMultiprocessor
+#hipOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
+#hipFuncGetAttribute
+#hipFuncGetAttributes
+#hipPeekAtLastError
+#hipPointerGetAttributes
+#hipProfilerStart
+#hipProfilerStop
+#hipRuntimeGetVersion
+#hipGetDeviceFlags
+#hipSetDevice
+#hipSetDeviceFlags
+#hipStreamAddCallback
+#hipStreamAttachMemAsync
+#hipStreamCreate
+#hipStreamCreateWithFlags
+#hipStreamCreateWithPriority
+#hipStreamDestroy
+#hipStreamGetFlags
+#hipStreamQuery
+#hipStreamSynchronize
+#hipStreamWaitEvent
+#__hipPopCallConfiguration
+#__hipPushCallConfiguration
+#__hipRegisterFatBinary
+#__hipRegisterFunction
+#__hipRegisterVar
+#__hipRegisterSurface
+#__hipRegisterTexture
+#__hipRegisterManagedVar
+#__hipUnregisterFatBinary
+#__gnu_h2f_ieee
+#__gnu_f2h_ieee
+#hipConfigureCall
+#hipSetupArgument
+#hipLaunchByPtr
+#hipLaunchKernel
+#hipRegisterApiCallback
+#hipRemoveApiCallback
+#hipRegisterActivityCallback
+#hipRemoveActivityCallback
+#hipApiName
+#hipKernelNameRef
+#hipKernelNameRefByPtr
+#hipGetStreamDeviceId
+#hipProfilerStart
+#hipProfilerStop
+#hiprtcCompileProgram
+#hiprtcCreateProgram
+#hiprtcDestroyProgram
+#hiprtcGetLoweredName
+#hiprtcGetProgramLog
+#hiprtcGetProgramLogSize
+#hiprtcGetCode
+#hiprtcGetCodeSize
+#hiprtcGetErrorString
+#hiprtcAddNameExpression
+#hiprtcVersion
+#hiprtcLinkCreate
+#hiprtcLinkAddFile
+#hiprtcLinkAddData
+#hiprtcLinkComplete
+#hiprtcLinkDestroy
+#hipBindTexture
+#hipBindTexture2D
+#hipBindTextureToArray
+#hipBindTextureToMipmappedArray
+#hipGetTextureAlignmentOffset
+#hipGetTextureReference
+#hipUnbindTexture
+#hipCreateChannelDesc
+#hipCreateTextureObject
+#hipDestroyTextureObject
+#hipGetChannelDesc
+#hipGetTextureObjectResourceDesc
+#hipGetTextureObjectResourceViewDesc
+#hipGetTextureObjectTextureDesc
+#hipTexRefGetAddress
+#hipTexRefGetAddressMode
+#hipTexRefGetArray
+#hipTexRefGetBorderColor
+#hipTexRefGetFilterMode
+#hipTexRefGetFlags
+#hipTexRefGetFormat
+#hipTexRefGetMaxAnisotropy
+#hipTexRefGetMipmapFilterMode
+#hipTexRefGetMipmapLevelBias
+#hipTexRefGetMipmapLevelClamp
+#hipTexRefGetMipmappedArray
+#hipTexRefSetAddress
+#hipTexRefSetAddress2D
+#hipTexRefSetAddressMode
+#hipTexRefSetArray
+#hipTexRefSetBorderColor
+#hipTexRefSetFilterMode
+#hipTexRefSetFlags
+#hipTexRefSetFormat
+#hipTexRefSetMaxAnisotropy
+#hipTexRefSetMipmapFilterMode
+#hipTexRefSetMipmapLevelBias
+#hipTexRefSetMipmapLevelClamp
+#hipTexRefSetMipmappedArray
+#hipMipmappedArrayCreate
+#hipMallocMipmappedArray
+#hipMipmappedArrayDestroy
+#hipFreeMipmappedArray
+#hipMipmappedArrayGetLevel
+#hipGetMipmappedArrayLevel
+#hipMallocHost
+#hipFreeHost
+#hipTexObjectCreate
+#hipTexObjectDestroy
+#hipTexObjectGetResourceDesc
+#hipTexObjectGetResourceViewDesc
+#hipTexObjectGetTextureDesc
+#hip_impl::hipLaunchKernelGGLImpl*
+#hip_impl::demangle*
+#hipCreateSurfaceObject*
+#hipDestroySurfaceObject*
+#hipHccModuleLaunchKernel*
+#hipExtModuleLaunchKernel*
+#hipInitActivityCallback*
+#hipEnableActivityCallback*
+#hipGetCmdName*
+#hipExtStreamCreateWithCUMask
+#hipStreamGetPriority
+#hipMemcpy2DFromArray
+#hipMemcpy2DFromArrayAsync
+#hipMemcpyAtoH
+#hipMemcpyHtoA
+#hipMemcpyParam2DAsync
+#__hipGetPCH
+#hipExtStreamGetCUMask
+#hipGraphCreate
+#hipGraphDestroy
+#hipGraphAddKernelNode
+#hipGraphAddMemsetNode
+#hipGraphAddMemcpyNode
+#hipGraphAddMemcpyNode1D
+#hipGraphInstantiate
+#hipGraphLaunch
+#hipStreamIsCapturing
+#hipStreamBeginCapture
+#hipStreamEndCapture
+#hipGraphExecDestroy
+#hipImportExternalSemaphore
+#hipSignalExternalSemaphoresAsync
+#hipWaitExternalSemaphoresAsync
+#hipDestroyExternalSemaphore
+#hipImportExternalMemory
+#hipExternalMemoryGetMappedBuffer
+#hipDestroyExternalMemory
+#hipMemcpy2DToArrayAsync
+#hipDrvMemcpy2DUnaligned
+#hipArrayDestroy
+#hipGLGetDevices
+#hipGraphicsGLRegisterBuffer
+#hipGraphicsMapResources
+#hipGraphicsResourceGetMappedPointer
+#hipGraphicsUnmapResources
+#hipGraphicsUnregisterResource
+#hipGraphGetNodes
+#hipGraphGetRootNodes
+#hipGraphKernelNodeGetParams
+#hipGraphKernelNodeSetParams
+#hipGraphMemcpyNodeGetParams
+#hipGraphMemcpyNodeSetParams
+#hipGraphMemsetNodeGetParams
+#hipGraphMemsetNodeSetParams
+#hipGraphAddDependencies
+#hipStreamWaitValue32
+#hipStreamWaitValue64
+#hipStreamWriteValue32
+#hipStreamWriteValue64
+#hipGraphExecKernelNodeSetParams
+#hipGraphAddEmptyNode
+#hipStreamUpdateCaptureDependencies
+#hipGraphRemoveDependencies
+#hipGraphGetEdges
+#hipGraphNodeGetDependencies
+#hipGraphNodeGetDependentNodes
+#hipGraphNodeGetType
+#hipGraphDestroyNode
+#hipGraphClone
+#hipGraphNodeFindInClone
+#hipGraphAddChildGraphNode
+#hipGraphChildGraphNodeGetGraph
+#hipGraphExecChildGraphNodeSetParams
+#hipGraphAddMemcpyNodeFromSymbol
+#hipGraphMemcpyNodeSetParamsFromSymbol
+#hipGraphExecMemcpyNodeSetParamsFromSymbol
+#hipGraphAddMemcpyNodeToSymbol
+#hipGraphMemcpyNodeSetParamsToSymbol
+#hipGraphExecMemcpyNodeSetParamsToSymbol
+#hipGraphExecMemcpyNodeSetParams
+#hipGraphMemcpyNodeSetParams1D
+#hipGraphExecMemcpyNodeSetParams1D
+#hipGraphAddEventRecordNode
+#hipGraphEventRecordNodeGetEvent
+#hipGraphEventRecordNodeSetEvent
+#hipGraphExecEventRecordNodeSetEvent
+#hipGraphAddEventWaitNode
+#hipGraphEventWaitNodeGetEvent
+#hipGraphEventWaitNodeSetEvent
+#hipGraphExecEventWaitNodeSetEvent
+#hipGraphAddHostNode
+#hipGraphHostNodeGetParams
+#hipGraphHostNodeSetParams
+#hipGraphExecHostNodeSetParams
+#hipGraphExecUpdate
+#hipGraphInstantiateWithFlags
+#hipGraphExecMemsetNodeSetParams
+#hipDeviceGetGraphMemAttribute
+#hipDeviceSetGraphMemAttribute
+#hipDeviceGraphMemTrim
+#amd_dbgapi_get_build_name
+#amd_dbgapi_get_git_hash
+#amd_dbgapi_get_build_id
+#hipStreamGetCaptureInfo
+#hipStreamGetCaptureInfo_v2
+#hipGraphicsGLRegisterImage
+#hipGraphicsSubResourceGetMappedArray
+#hipPointerGetAttribute
+#hipDrvPointerGetAttributes
+#hipThreadExchangeStreamCaptureMode
+#hipGraphKernelNodeSetAttribute
+#hipGraphKernelNodeGetAttribute
+#hipDeviceGetUuid
+#hipDeviceGetDefaultMemPool
+#hipDeviceSetMemPool
+#hipDeviceGetMemPool
+#hipMallocAsync
+#hipFreeAsync
+#hipMemPoolTrimTo
+#hipMemPoolSetAttribute
+#hipMemPoolGetAttribute
+#hipMemPoolSetAccess
+#hipMemPoolGetAccess
+#hipMemPoolCreate
+#hipMemPoolDestroy
+#hipMallocFromPoolAsync
+#hipMemPoolExportToShareableHandle
+#hipMemPoolImportFromShareableHandle
+#hipMemPoolExportPointer
+#hipMemPoolImportPointer
+#hipMemAddressFree
+#hipMemAddressReserve
+#hipMemCreate
+#hipMemExportToShareableHandle
+#hipMemGetAccess
+#hipMemGetAllocationGranularity
+#hipMemGetAllocationPropertiesFromHandle
+#hipMemImportFromShareableHandle
+#hipMemMap
+#hipMemMapArrayAsync
+#hipMemRelease
+#hipMemRetainAllocationHandle
+#hipMemSetAccess
+#hipMemUnmap
+#hipMemcpy_spt
+#hipMemcpyAsync_spt
+#hipStreamSynchronize_spt
+#hipMemcpyToSymbol_spt
+#hipMemcpyFromSymbol_spt
+#hipMemcpy2D_spt
+#hipMemcpy2DToArray_spt
+#hipMemcpy2DFromArray_spt
+#hipMemcpy3D_spt
+#hipMemset_spt
+#hipMemset2D_spt
+#hipMemset3D_spt
+#hipStreamQuery_spt
+#hipStreamGetFlags_spt
+#hipStreamGetPriority_spt
+#hipStreamWaitEvent_spt
+#hipEventRecord_spt
+#hipLaunchKernel_spt
+#hipLaunchCooperativeKernel_spt
+#hipDeviceSetLimit
+#hiprtcGetBitcode
+#hiprtcGetBitcodeSize
+#hipGraphLaunch_spt
+#hipStreamBeginCapture_spt
+#hipStreamEndCapture_spt
+#hipStreamIsCapturing_spt
+#hipStreamGetCaptureInfo_spt
+#hipStreamGetCaptureInfo_v2_spt
+#hipStreamAddCallback_spt
+#hipMemsetAsync_spt
+#hipMemset2DAsync_spt
+#hipMemset3DAsync_spt
+#hipMemcpy3DAsync_spt
+#hipMemcpy2DAsync_spt
+#hipMemcpyFromSymbolAsync_spt
+#hipMemcpyToSymbolAsync_spt
+#hipMemcpyFromArray_spt
+#hipMemcpy2DToArray_spt
+#hipMemcpy2DFromArrayAsync_spt
+#hipMemcpy2DToArrayAsync_spt
+#hipDrvGetErrorName
+#hipDrvGetErrorString

@@ -23,8 +23,21 @@ struct _hip_device_s {
 	struct _hip_device_s  *pNext;
 	hipDevice_t            driverHandle;
 	hipDevice_t            loaderHandle;
-	int                    index;
+	int                    driverIndex;
+	int                    loaderIndex;
 	struct _hip_context_s  primaryCtx;
+};
+
+struct _hip_event_s {
+	struct _multiplex_s   *multiplex;
+	hipEvent_t             native;
+	struct _hip_device_s  *pDevice;
+};
+
+struct _hip_stream_s {
+	struct _multiplex_s   *multiplex;
+	hipStream_t            native;
+	struct _hip_device_s  *pDevice;
 };
 
 /* For now wrapping objects, so wrapped objects should contain a native member */
@@ -145,12 +158,17 @@ do {                                                   \
 		_HIPLD_RETURN(hipErrorInvalidContext); \
 } while(0)
 
+
+#define _HIPLD_DISPATCH_TABLE(handle) (handle->multiplex->dispatch)
+#define _HIPLD_DISPATCH_API(handle, api) _HIPLD_DISPATCH_TABLE(handle).api
+#define _HIPLD_DISPATCH(handle, api, ...) _HIPLD_DISPATCH_API(handle, api)(__VA_ARGS__)
+
 static inline int _indexToHandle(int index) {
-  return -index - 1;
+  return index;
 }
 
 static inline int _handleToIndex(int handle) {
-  return -handle - 1;
+  return handle;
 }
 
 static hipError_t
@@ -164,8 +182,9 @@ _loadDevices(struct _hip_driver_s *pDriver) {
 		pDriver->hipDeviceGet(&pDevice->driverHandle, i);
 		pDevice->pDriver = pDriver;
 		pDevice->multiplex = &pDriver->multiplex;
-		pDevice->index = _hipDeviceCount + i;
-		pDevice->loaderHandle = _indexToHandle(pDevice->index);
+		pDevice->loaderIndex = _hipDeviceCount + i;
+		pDevice->driverIndex = i;
+		pDevice->loaderHandle = _indexToHandle(pDevice->loaderIndex);
 		pDevice->pNext = _deviceList;
 		pDevice->primaryCtx.multiplex = &pDriver->multiplex;
 		pDevice->primaryCtx.pDevice = pDevice;
@@ -267,7 +286,7 @@ hipSetDevice(int deviceId) {
 	if (!_hipDeviceCount)
 		_HIPLD_RETURN(hipErrorNoDevice);
 	struct _hip_device_s *device = _deviceArray[deviceId];
-	_HIPLD_RETURN(device->multiplex->dispatch.hipSetDevice(device->index));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(device, hipSetDevice, device->driverIndex));
 	_ctxDeviceSet(device);
 	_HIPLD_RETURN(hipSuccess);
 }
@@ -304,7 +323,7 @@ hipChooseDevice(int* device, const hipDeviceProp_t* prop) {
 	while (driver) {
 		err = driver->multiplex.dispatch.hipChooseDevice(device, prop);
 		if (err == hipSuccess) {
-			*device = driver->pDevices[*device].index;
+			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
 		}
 	}
@@ -322,7 +341,7 @@ hipDeviceGetByPCIBusId(int* device, const char* pciBusId) {
 	while (driver) {
 		err = driver->multiplex.dispatch.hipDeviceGetByPCIBusId(device, pciBusId);
 		if (err == hipSuccess) {
-			*device = driver->pDevices[*device].index;
+			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
 		}
 	}
@@ -334,11 +353,11 @@ hipCtxCreate(hipCtx_t* ctx, unsigned int flags, hipDevice_t device) {
 	_initOnce();
 	int index = _handleToIndex(device);
 	_HIPLD_CHECK_DEVICEID(index);
-	struct _hip_device_s *dev = _deviceList + index;
-	_HIPLD_CHECK_ERR(dev->multiplex->dispatch.hipCtxCreate(ctx, flags, device));
+	struct _hip_device_s *dev = _deviceArray[index];
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(dev, hipCtxCreate, ctx, flags, device));
 	struct _hip_context_s * _hip_context = (struct _hip_context_s *)calloc(1, sizeof(struct _hip_context_s));
 	if (!_hip_context) {
-		dev->multiplex->dispatch.hipCtxDestroy(*ctx);
+		_HIPLD_DISPATCH(dev, hipCtxDestroy, *ctx);
 		_HIPLD_RETURN(hipErrorOutOfMemory);
 	}
 	_hip_context->multiplex = dev->multiplex;
@@ -355,7 +374,7 @@ hipCtxDestroy(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
 	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_hip_context->multiplex->dispatch.hipCtxDestroy(_hip_context->native));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxDestroy, _hip_context->native));
 	if (_ctxStackTop() == _hip_context)
 		_ctxStackPop();
 	free(_hip_context);
@@ -370,7 +389,7 @@ hipCtxPopCurrent(hipCtx_t* ctx) {
 	_initOnce();
 	struct _hip_context_s * _hip_context = _ctxStackPop();
 	_HIPLD_CHECK_CTX(_hip_context);
-	_HIPLD_CHECK_ERR(_hip_context->multiplex->dispatch.hipCtxPopCurrent(ctx));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxPopCurrent, ctx));
 	if (ctx)
 		*ctx = (hipCtx_t)_hip_context;
 	_hip_context = _ctxStackTop();
@@ -384,7 +403,7 @@ hipCtxPushCurrent(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
 	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_hip_context->multiplex->dispatch.hipCtxPushCurrent(_hip_context->native));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxPushCurrent, _hip_context->native));
 	_ctxStackPush(_hip_context);
 	_ctxDeviceSet(_hip_context->pDevice);
 	_HIPLD_RETURN(hipSuccess);
@@ -395,7 +414,7 @@ hipCtxSetCurrent(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
 	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_hip_context->multiplex->dispatch.hipCtxSetCurrent(_hip_context->native));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxSetCurrent, _hip_context->native));
 	_ctxStackPop();
 	_ctxStackPush(_hip_context);
 	_ctxDeviceSet(_hip_context->pDevice);
@@ -423,27 +442,158 @@ hipCtxGetDevice(hipDevice_t* device) {
 }
 
 hipError_t
-hipCtxGetApiVersion(hipCtx_t ctx, int* apiVersion) {
-	_initOnce();
-	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_CTX(_hip_context);
-	_HIPLD_CHECK_ERR(_hip_context->multiplex->dispatch.hipCtxGetApiVersion(_hip_context->native, apiVersion));
-	_HIPLD_RETURN(hipSuccess);
-}
-
-hipError_t
 hipDevicePrimaryCtxRetain(hipCtx_t* pctx, hipDevice_t dev) {
 	_initOnce();
 	int index = _handleToIndex(dev);
 	_HIPLD_CHECK_DEVICEID(index);
 	_HIPLD_CHECK_PTR(pctx);
-	struct _hip_device_s *_hip_device = _deviceList + index;
+	struct _hip_device_s *_hip_device = _deviceArray[index];
 	dev = _hip_device->driverHandle;
-	_HIPLD_CHECK_ERR(_hip_device->multiplex->dispatch.hipDevicePrimaryCtxRetain(pctx, dev));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipDevicePrimaryCtxRetain, pctx, dev));
 	_hip_device->primaryCtx.native = *pctx;
 	*pctx = (hipCtx_t)&_hip_device->primaryCtx;
 	_HIPLD_RETURN(hipSuccess);
 }
 
+hipError_t
+hipDeviceCanAccessPeer(int* canAccessPeer, int deviceId, int peerDeviceId) {
+	_initOnce();
+	_HIPLD_CHECK_PTR(canAccessPeer);
+	_HIPLD_CHECK_DEVICEID(deviceId);
+	_HIPLD_CHECK_DEVICEID(peerDeviceId);
+	if (deviceId == peerDeviceId) {
+		*canAccessPeer = 0;
+	} else {
+		struct _hip_device_s *_hip_device = _deviceArray[deviceId];
+		struct _hip_device_s *_hip_peer_device = _deviceArray[peerDeviceId];
+		if (_hip_device->pDriver != _hip_peer_device->pDriver)
+			*canAccessPeer = 0;
+		else {
+			_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipDeviceCanAccessPeer,
+				canAccessPeer, _hip_device->driverIndex, _hip_peer_device->driverIndex));
+		}
+	}
+	_HIPLD_RETURN(hipSuccess);
+}
 
+hipError_t
+hipDeviceDisablePeerAccess(int peerDeviceId) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(peerDeviceId);
+	struct _hip_device_s *_hip_device = _ctxDeviceGet();
+	struct _hip_device_s *_hip_peer_device = _deviceArray[peerDeviceId];
+	if (_hip_device->pDriver != _hip_peer_device->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_device, hipDeviceDisablePeerAccess,
+		_hip_peer_device->driverIndex));
+}
+
+hipError_t
+hipDeviceEnablePeerAccess(int peerDeviceId, unsigned int flags) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(peerDeviceId);
+	struct _hip_device_s *_hip_device = _ctxDeviceGet();
+	struct _hip_device_s *_hip_peer_device = _deviceArray[peerDeviceId];
+	if (_hip_device->pDriver != _hip_peer_device->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_device, hipDeviceEnablePeerAccess,
+		_hip_peer_device->driverIndex, flags));
+}
+
+hipError_t
+hipDeviceGetP2PAttribute(int* value, hipDeviceP2PAttr attr, int srcDevice, int dstDevice) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(srcDevice);
+	_HIPLD_CHECK_DEVICEID(dstDevice);
+	struct _hip_device_s *_hip_src_device = _deviceArray[srcDevice];
+	struct _hip_device_s *_hip_dst_device = _deviceArray[dstDevice];
+	if (_hip_src_device->pDriver != _hip_dst_device->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_src_device, hipDeviceGetP2PAttribute,
+		value, attr, _hip_src_device->driverIndex, _hip_dst_device->driverIndex));
+}
+
+hipError_t
+hipEventCreate(hipEvent_t* event) {
+	_initOnce();
+	struct _hip_device_s *_hip_device = _ctxDeviceGet();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipEventCreate, event));
+	struct _hip_event_s *_hip_event = (struct _hip_event_s *) calloc(1, sizeof(struct _hip_event_s *));
+	if (!_hip_event) {
+		_HIPLD_DISPATCH(_hip_device, hipEventDestroy, *event);
+		_HIPLD_RETURN(hipErrorOutOfMemory);
+	}
+	_hip_event->multiplex = _hip_device->multiplex;
+	_hip_event->native = *event;
+	_hip_event->pDevice = _hip_device;
+	*event = (hipEvent_t)_hip_event;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipEventCreateWithFlags(hipEvent_t* event, unsigned flags) {
+	_initOnce();
+	struct _hip_device_s *_hip_device = _ctxDeviceGet();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipEventCreateWithFlags, event, flags));
+	struct _hip_event_s *_hip_event = (struct _hip_event_s *) calloc(1, sizeof(struct _hip_event_s *));
+	if (!_hip_event) {
+		_HIPLD_DISPATCH(_hip_device, hipEventDestroy, *event);
+		_HIPLD_RETURN(hipErrorOutOfMemory);
+	}
+	_hip_event->multiplex = _hip_device->multiplex;
+	_hip_event->native = *event;
+	_hip_event->pDevice = _hip_device;
+	*event = (hipEvent_t)_hip_event;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipEventDestroy(hipEvent_t event) {
+	_initOnce();
+	struct _hip_event_s *_hip_event = (struct _hip_event_s *)event;
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_event, hipEventDestroy, _hip_event->native));
+	free(_hip_event);
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipExtGetLinkTypeAndHopCount(int device1, int device2, uint32_t* linktype, uint32_t* hopcount) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(device1);
+	_HIPLD_CHECK_DEVICEID(device2);
+	struct _hip_device_s *_hip_device1 = _deviceArray[device1];
+	struct _hip_device_s *_hip_device2 = _deviceArray[device2];
+	if (_hip_device1->pDriver != _hip_device2->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_device1, hipExtGetLinkTypeAndHopCount,
+		_hip_device1->driverIndex, _hip_device2->driverIndex, linktype, hopcount));
+}
+
+hipError_t
+hipExtLaunchMultiKernelMultiDevice(hipLaunchParams* launchParamsList, int  numDevices, unsigned int  flags)
+{
+	_initOnce();
+	if (!numDevices)
+		_HIPLD_RETURN(hipSuccess);
+	struct _hip_stream_s *_hip_stream0 = (struct _hip_stream_s *)launchParamsList[0].stream;
+	for (int i = 1; i < numDevices; i++) {
+		struct _hip_stream_s *_hip_stream = (struct _hip_stream_s *)launchParamsList[i].stream;
+		if (!_hip_stream || _hip_stream0->pDevice->pDriver != _hip_stream->pDevice->pDriver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+	}
+	hipStream_t * _streams = (hipStream_t *)malloc(sizeof(hipStream_t) * numDevices);
+	if (!_streams)
+		_HIPLD_RETURN(hipErrorOutOfMemory);
+	for (int i = 0; i < numDevices; i++) {
+		struct _hip_stream_s *_hip_stream = (struct _hip_stream_s *)launchParamsList[i].stream;
+		_streams[i] = launchParamsList[i].stream;
+		launchParamsList[i].stream = _hip_stream->native;
+	}
+	hipError_t err = _HIPLD_DISPATCH(_hip_stream0, hipExtLaunchMultiKernelMultiDevice,
+		launchParamsList, numDevices, flags);
+	for (int i = 0; i < numDevices; i++)
+		launchParamsList[i].stream = _streams[i];
+	free(_streams);
+	_HIPLD_RETURN(err);
+}
 #include "hip_dispatch_stubs.h"
