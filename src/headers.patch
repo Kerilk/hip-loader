@@ -159,6 +159,48 @@ diff -u4 -r --new-file include/hip/amd_detail/amd_hip_vector_types.h include-mod
 +DECLOP_MAKE_FOUR_COMPONENT(signed long long, longlong4)
  
  #endif
+diff -u4 -r --new-file include/hip/hip_ext.h include-modified/hip/hip_ext.h
+--- include/hip/hip_ext.h	2023-01-05 12:09:58.387407034 -0600
++++ include-modified/hip/hip_ext.h	2023-01-30 14:50:24.205870577 -0600
+@@ -21,9 +21,9 @@
+ */
+ 
+ #ifndef HIP_INCLUDE_HIP_HIP_EXT_H
+ #define HIP_INCLUDE_HIP_HIP_EXT_H
+-#include "hip/hip_runtime.h"
++//#include "hip/hip_runtime.h"
+ #if defined(__cplusplus)
+ #include <tuple>
+ #include <type_traits>
+ #endif
+@@ -69,11 +69,11 @@
+                                     uint32_t globalWorkSizeY, uint32_t globalWorkSizeZ,
+                                     uint32_t localWorkSizeX, uint32_t localWorkSizeY,
+                                     uint32_t localWorkSizeZ, size_t sharedMemBytes,
+                                     hipStream_t hStream, void** kernelParams, void** extra,
+-                                    hipEvent_t startEvent = nullptr,
+-                                    hipEvent_t stopEvent = nullptr,
+-                                    uint32_t flags = 0);
++                                    hipEvent_t startEvent,
++                                    hipEvent_t stopEvent,
++                                    uint32_t flags);
+ /**
+  * @brief This HIP API is deprecated, please use hipExtModuleLaunchKernel() instead.
+  *
+  */
+@@ -82,10 +82,10 @@
+                                     uint32_t globalWorkSizeY, uint32_t globalWorkSizeZ,
+                                     uint32_t localWorkSizeX, uint32_t localWorkSizeY,
+                                     uint32_t localWorkSizeZ, size_t sharedMemBytes,
+                                     hipStream_t hStream, void** kernelParams, void** extra,
+-                                    hipEvent_t startEvent = nullptr,
+-                                    hipEvent_t stopEvent = nullptr)
++                                    hipEvent_t startEvent,
++                                    hipEvent_t stopEvent)
+                                     __attribute__((deprecated("use hipExtModuleLaunchKernel instead")));
+ 
+ #if defined(__cplusplus)
+ 
 diff -u4 -r --new-file include/hip/hiprtc.h include-modified/hip/hiprtc.h
 --- include/hip/hiprtc.h	2023-01-05 12:09:58.387407034 -0600
 +++ include-modified/hip/hiprtc.h	2023-01-05 10:36:53.910185513 -0600
@@ -174,7 +216,7 @@ diff -u4 -r --new-file include/hip/hiprtc.h include-modified/hip/hiprtc.h
  #pragma GCC visibility push (default)
  #endif
 diff -u4 -r --new-file include/hip/hip_runtime_api.h include-modified/hip/hip_runtime_api.h
---- include/hip/hip_runtime_api.h	2023-01-05 12:09:58.387407034 -0600
+--- include/hip/hip_runtime_api.h	2023-01-26 17:21:22.869862542 -0600
 +++ include-modified/hip/hip_runtime_api.h	2022-12-12 15:42:25.075658750 -0600
 @@ -30,9 +30,9 @@
  #ifndef HIP_INCLUDE_HIP_HIP_RUNTIME_API_H
@@ -200,6 +242,7 @@ diff -u4 -r --new-file include/hip/hip_runtime_api.h include-modified/hip/hip_ru
  #define GENERIC_GRID_LAUNCH 1
  #endif
  #include <hip/amd_detail/host_defines.h>
+Binary files include/hip/.hip_runtime_api.h.swp and include-modified/hip/.hip_runtime_api.h.swp differ
 diff -u4 -r --new-file include/hip/hip_runtime_load_api.h include-modified/hip/hip_runtime_load_api.h
 --- include/hip/hip_runtime_load_api.h	1969-12-31 19:00:00.000000000 -0500
 +++ include-modified/hip/hip_runtime_load_api.h	2023-01-05 11:59:31.847480018 -0600

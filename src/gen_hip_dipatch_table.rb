@@ -23,13 +23,15 @@ puts YAMLCAst::Struct.new(name: "_hip_dipatch_s", members: $spec["functions"].ma
 
 puts <<EOF
 
+struct _hip_device_s;
+struct _hip_driver_s;
 // Instance layers can be added later
 struct _multiplex_s {
-	struct _hip_dipatch_s dispatch;
+	struct _hip_dipatch_s  dispatch;
+	struct _hip_device_s  *pDevice;
+	struct _hip_driver_s  *pDriver;
 };
 
-struct _hip_driver_s;
-struct _hip_device_s;
 struct _hip_driver_s {
 	void                  *pLibrary;
 	int                    deviceCount;
@@ -37,7 +39,7 @@ struct _hip_driver_s {
 	hipGetDeviceCount_t   *hipGetDeviceCount;
 	hipDeviceGet_t        *hipDeviceGet;
 //	hipGetFunc_t          *hipGetFunc; //should be one of the only exposed
-	struct _multiplex_s    multiplex;
+	struct _hip_dipatch_s  dispatch;
 	struct _hip_driver_s  *pNext;
 };
 
@@ -46,7 +48,7 @@ _fillDriverDispatch(struct _hip_driver_s *pDriver) {
 EOF
 
 $spec["functions"].each { |f|
-  puts "  pDriver->multiplex.dispatch.#{f.name} = (#{f.name}_t *)(intptr_t)dlsym(pDriver->pLibrary, \"#{f.name}\");"
+  puts "  pDriver->dispatch.#{f.name} = (#{f.name}_t *)(intptr_t)dlsym(pDriver->pLibrary, \"#{f.name}\");"
 }
 
 puts <<EOF

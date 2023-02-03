@@ -8,52 +8,76 @@
 #include <hip/hiprtc.h>
 #include "hip_dispatch.h"
 
+struct ihipCtx_t {
+	struct _multiplex_s *multiplex;
+};
 
-struct _hip_context_s;
-struct _hip_context_s {
-	struct _multiplex_s   *multiplex;
-	hipCtx_t               native;
-	struct _hip_device_s  *pDevice;
-	struct _hip_context_s *pNext;
+struct ihipStream_t {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipModule_t {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipModuleSymbol_t {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipMemPoolHandle_t {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipEvent_t {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipGraph {
+	struct _multiplex_s *multiplex;
+};
+
+struct hipGraphNode {
+	struct _multiplex_s *multiplex;
+};
+
+struct hipGraphExec {
+	struct _multiplex_s *multiplex;
+};
+
+
+struct hipUserObject {
+	struct _multiplex_s *multiplex;
+};
+
+struct __hip_texture {
+	struct _multiplex_s *multiplex;
 };
 
 struct _hip_device_s {
 	struct _multiplex_s   *multiplex;
+	struct _multiplex_s    mplx;
 	struct _hip_driver_s  *pDriver;
 	struct _hip_device_s  *pNext;
 	hipDevice_t            driverHandle;
 	hipDevice_t            loaderHandle;
 	int                    driverIndex;
 	int                    loaderIndex;
-	struct _hip_context_s  primaryCtx;
+	hipCtx_t               primaryCtx;
 };
-
-struct _hip_event_s {
-	struct _multiplex_s   *multiplex;
-	hipEvent_t             native;
-	struct _hip_device_s  *pDevice;
-};
-
-struct _hip_stream_s {
-	struct _multiplex_s   *multiplex;
-	hipStream_t            native;
-	struct _hip_device_s  *pDevice;
-};
-
-/* For now wrapping objects, so wrapped objects should contain a native member */
-
-#define _HIPLD_UNWRAP(pStruct) ( (pStruct) ? (pStruct)->native : NULL )
 
 struct _thread_context_s {
 	struct _hip_device_s  *_currentDevice;
 	hipError_t             _lastError;
-	struct _hip_context_s *_ctxStack;
+	size_t                 _stackSize;
+	size_t                 _stackCapacity;
+	hipCtx_t              *_ctxStack;
 };
 
 static __thread  struct _thread_context_s _thread_context =
- {0, hipErrorNotInitialized, NULL};
+	{NULL, hipErrorNotInitialized, 0, 0, NULL};
 
 static struct _hip_driver_s  *_driverList     = NULL;
+static int                    _hipDriverCount = 0;
 static struct _hip_device_s  *_deviceList     = NULL;
 static int                    _hipDeviceCount = 0;
 static struct _hip_device_s **_deviceArray    = NULL;
@@ -61,7 +85,7 @@ static unsigned int           _flags          = 0;
 static pthread_once_t         _initialized    = PTHREAD_ONCE_INIT;
 
 static inline int _ctxStackEmpty() {
-	return _thread_context._ctxStack == NULL;
+	return _thread_context._stackSize == 0;
 }
 
 static inline void
@@ -84,25 +108,42 @@ _ctxDeviceGetID() {
 	return _thread_context._currentDevice->loaderHandle;
 }
 
-static inline void
-_ctxStackPush(struct _hip_context_s *ctx) {
-	ctx->pNext = _thread_context._ctxStack;
-	_thread_context._ctxStack = ctx;
+#define _HIPLD_MIN(a, b) ((a)<(b) ? (a) : (b) )
+
+static inline hipError_t
+_ctxStackPush(hipCtx_t ctx) {
+	if (_thread_context._stackSize == _thread_context._stackCapacity) {
+		size_t newCapa = _thread_context._stackCapacity;
+		if (newCapa == 0)
+			newCapa = 8;
+		else
+			newCapa *= 2;
+		hipCtx_t * newStack = (hipCtx_t *)realloc(
+			_thread_context._ctxStack,
+			newCapa * sizeof(hipCtx_t));
+		if (!newStack)
+			return hipErrorOutOfMemory;
+		_thread_context._ctxStack = newStack;
+		_thread_context._stackCapacity = newCapa;
+	}
+	_thread_context._ctxStack[_thread_context._stackSize] = ctx;
+	_thread_context._stackSize += 1;
+	return hipSuccess;
 }
 
-static inline struct _hip_context_s *
+static inline hipCtx_t
 _ctxStackPop() {
-	if (!_thread_context._ctxStack)
+	if (!_thread_context._stackSize)
 		return NULL;
-	struct _hip_context_s *top = _thread_context._ctxStack;
-	_thread_context._ctxStack = top->pNext;
-	top->pNext = NULL;
-	return top;
+	_thread_context._stackSize -= 1;
+	return _thread_context._ctxStack[_thread_context._stackSize];
 }
 
-static inline struct _hip_context_s *
+static inline hipCtx_t
 _ctxStackTop() {
-	return _thread_context._ctxStack;
+	if (!_thread_context._stackSize)
+		return NULL;
+	return _thread_context._ctxStack[_thread_context._stackSize - 1];
 }
 
 static void *
@@ -180,14 +221,16 @@ _loadDevices(struct _hip_driver_s *pDriver) {
 		struct _hip_device_s *pDevice = pDriver->pDevices + i;
 		// Shouldn't fail assert?
 		pDriver->hipDeviceGet(&pDevice->driverHandle, i);
+		memcpy(&pDevice->mplx.dispatch, &pDriver->dispatch, sizeof(struct _hip_dipatch_s));
+		pDevice->multiplex = &pDevice->mplx;
+		pDevice->mplx.pDevice = pDevice;
+		pDevice->mplx.pDriver = pDriver;
 		pDevice->pDriver = pDriver;
-		pDevice->multiplex = &pDriver->multiplex;
 		pDevice->loaderIndex = _hipDeviceCount + i;
 		pDevice->driverIndex = i;
 		pDevice->loaderHandle = _indexToHandle(pDevice->loaderIndex);
 		pDevice->pNext = _deviceList;
-		pDevice->primaryCtx.multiplex = &pDriver->multiplex;
-		pDevice->primaryCtx.pDevice = pDevice;
+		pDevice->primaryCtx = NULL;
 		_deviceList = pDevice;
 	}
 	_hipDeviceCount += pDriver->deviceCount;
@@ -225,6 +268,7 @@ _loadDriver(const char *path) {
 	pDriver->pDevices = (struct _hip_device_s *)((intptr_t)pDriver + sizeof(struct _hip_driver_s));
 	pDriver->pNext = _driverList;
 	_driverList = pDriver;
+	_hipDriverCount += 1;
 	return;
 error:
 	dlclose(lib);
@@ -321,7 +365,7 @@ hipChooseDevice(int* device, const hipDeviceProp_t* prop) {
 	hipError_t err;
 	struct _hip_driver_s *driver = _driverList;
 	while (driver) {
-		err = driver->multiplex.dispatch.hipChooseDevice(device, prop);
+		err = driver->dispatch.hipChooseDevice(device, prop);
 		if (err == hipSuccess) {
 			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
@@ -339,7 +383,7 @@ hipDeviceGetByPCIBusId(int* device, const char* pciBusId) {
 	hipError_t err;
 	struct _hip_driver_s *driver = _driverList;
 	while (driver) {
-		err = driver->multiplex.dispatch.hipDeviceGetByPCIBusId(device, pciBusId);
+		err = driver->dispatch.hipDeviceGetByPCIBusId(device, pciBusId);
 		if (err == hipSuccess) {
 			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
@@ -355,17 +399,9 @@ hipCtxCreate(hipCtx_t* ctx, unsigned int flags, hipDevice_t device) {
 	_HIPLD_CHECK_DEVICEID(index);
 	struct _hip_device_s *dev = _deviceArray[index];
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(dev, hipCtxCreate, ctx, flags, device));
-	struct _hip_context_s * _hip_context = (struct _hip_context_s *)calloc(1, sizeof(struct _hip_context_s));
-	if (!_hip_context) {
-		_HIPLD_DISPATCH(dev, hipCtxDestroy, *ctx);
-		_HIPLD_RETURN(hipErrorOutOfMemory);
-	}
-	_hip_context->multiplex = dev->multiplex;
-	_hip_context->pDevice = dev;
-	_hip_context->native = *ctx;
-	_ctxStackPush(_hip_context);
+	(*ctx)->multiplex = dev->multiplex;
+	_ctxStackPush(*ctx);
 	_ctxDeviceSet(dev);
-	*ctx = (hipCtx_t)_hip_context;
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -373,28 +409,25 @@ hipError_t
 hipCtxDestroy(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
-	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxDestroy, _hip_context->native));
-	if (_ctxStackTop() == _hip_context)
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(ctx, hipCtxDestroy, ctx));
+	if (_ctxStackTop() == ctx)
 		_ctxStackPop();
-	free(_hip_context);
-	_hip_context = _ctxStackTop();
-	if (_hip_context)
-		_ctxDeviceSet(_hip_context->pDevice);
+	if (_ctxStackTop())
+		_ctxDeviceSet(_ctxStackTop()->multiplex->pDevice);
 	_HIPLD_RETURN(hipSuccess);
 }
 
 hipError_t
 hipCtxPopCurrent(hipCtx_t* ctx) {
 	_initOnce();
-	struct _hip_context_s * _hip_context = _ctxStackPop();
+	hipCtx_t _hip_context = _ctxStackPop();
 	_HIPLD_CHECK_CTX(_hip_context);
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxPopCurrent, ctx));
 	if (ctx)
-		*ctx = (hipCtx_t)_hip_context;
+		*ctx = _hip_context;
 	_hip_context = _ctxStackTop();
 	if (_hip_context)
-		_ctxDeviceSet(_hip_context->pDevice);
+		_ctxDeviceSet(_hip_context->multiplex->pDevice);
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -402,10 +435,9 @@ hipError_t
 hipCtxPushCurrent(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
-	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxPushCurrent, _hip_context->native));
-	_ctxStackPush(_hip_context);
-	_ctxDeviceSet(_hip_context->pDevice);
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(ctx, hipCtxPushCurrent, ctx));
+	_ctxStackPush(ctx);
+	_ctxDeviceSet(ctx->multiplex->pDevice);
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -413,11 +445,10 @@ hipError_t
 hipCtxSetCurrent(hipCtx_t ctx) {
 	_initOnce();
 	_HIPLD_CHECK_CTX(ctx);
-	struct _hip_context_s * _hip_context = (struct _hip_context_s *)ctx;
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_context, hipCtxSetCurrent, _hip_context->native));
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(ctx, hipCtxSetCurrent, ctx));
 	_ctxStackPop();
-	_ctxStackPush(_hip_context);
-	_ctxDeviceSet(_hip_context->pDevice);
+	_ctxStackPush(ctx);
+	_ctxDeviceSet(ctx->multiplex->pDevice);
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -425,9 +456,8 @@ hipError_t
 hipCtxGetCurrent(hipCtx_t* ctx) {
 	_initOnce();
 	_HIPLD_CHECK_PTR(ctx);
-	struct _hip_context_s * _hip_context = _ctxStackTop();
-	_HIPLD_CHECK_CTX(_hip_context);
-	*ctx = (hipCtx_t)_hip_context;
+	*ctx = _ctxStackTop();
+	_HIPLD_CHECK_CTX(*ctx);
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -435,7 +465,7 @@ hipError_t
 hipCtxGetDevice(hipDevice_t* device) {
 	_initOnce();
 	_HIPLD_CHECK_PTR(device);
-	struct _hip_context_s * _hip_context = _ctxStackTop();
+	hipCtx_t _hip_context = _ctxStackTop();
 	_HIPLD_CHECK_CTX(_hip_context);
 	*device = _ctxDeviceGetID();
 	_HIPLD_RETURN(hipSuccess);
@@ -448,10 +478,10 @@ hipDevicePrimaryCtxRetain(hipCtx_t* pctx, hipDevice_t dev) {
 	_HIPLD_CHECK_DEVICEID(index);
 	_HIPLD_CHECK_PTR(pctx);
 	struct _hip_device_s *_hip_device = _deviceArray[index];
-	dev = _hip_device->driverHandle;
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipDevicePrimaryCtxRetain, pctx, dev));
-	_hip_device->primaryCtx.native = *pctx;
-	*pctx = (hipCtx_t)&_hip_device->primaryCtx;
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipDevicePrimaryCtxRetain,
+		pctx, _hip_device->driverHandle));
+	_hip_device->primaryCtx = *pctx;
+	_hip_device->primaryCtx->multiplex = _hip_device->multiplex;
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -518,15 +548,7 @@ hipEventCreate(hipEvent_t* event) {
 	_initOnce();
 	struct _hip_device_s *_hip_device = _ctxDeviceGet();
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipEventCreate, event));
-	struct _hip_event_s *_hip_event = (struct _hip_event_s *) calloc(1, sizeof(struct _hip_event_s *));
-	if (!_hip_event) {
-		_HIPLD_DISPATCH(_hip_device, hipEventDestroy, *event);
-		_HIPLD_RETURN(hipErrorOutOfMemory);
-	}
-	_hip_event->multiplex = _hip_device->multiplex;
-	_hip_event->native = *event;
-	_hip_event->pDevice = _hip_device;
-	*event = (hipEvent_t)_hip_event;
+	(*event)->multiplex = _hip_device->multiplex;
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -535,24 +557,7 @@ hipEventCreateWithFlags(hipEvent_t* event, unsigned flags) {
 	_initOnce();
 	struct _hip_device_s *_hip_device = _ctxDeviceGet();
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipEventCreateWithFlags, event, flags));
-	struct _hip_event_s *_hip_event = (struct _hip_event_s *) calloc(1, sizeof(struct _hip_event_s *));
-	if (!_hip_event) {
-		_HIPLD_DISPATCH(_hip_device, hipEventDestroy, *event);
-		_HIPLD_RETURN(hipErrorOutOfMemory);
-	}
-	_hip_event->multiplex = _hip_device->multiplex;
-	_hip_event->native = *event;
-	_hip_event->pDevice = _hip_device;
-	*event = (hipEvent_t)_hip_event;
-	_HIPLD_RETURN(hipSuccess);
-}
-
-hipError_t
-hipEventDestroy(hipEvent_t event) {
-	_initOnce();
-	struct _hip_event_s *_hip_event = (struct _hip_event_s *)event;
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_event, hipEventDestroy, _hip_event->native));
-	free(_hip_event);
+	(*event)->multiplex = _hip_device->multiplex;
 	_HIPLD_RETURN(hipSuccess);
 }
 
@@ -575,25 +580,184 @@ hipExtLaunchMultiKernelMultiDevice(hipLaunchParams* launchParamsList, int  numDe
 	_initOnce();
 	if (!numDevices)
 		_HIPLD_RETURN(hipSuccess);
-	struct _hip_stream_s *_hip_stream0 = (struct _hip_stream_s *)launchParamsList[0].stream;
-	for (int i = 1; i < numDevices; i++) {
-		struct _hip_stream_s *_hip_stream = (struct _hip_stream_s *)launchParamsList[i].stream;
-		if (!_hip_stream || _hip_stream0->pDevice->pDriver != _hip_stream->pDevice->pDriver)
-			_HIPLD_RETURN(hipErrorInvalidDevice);
-	}
-	hipStream_t * _streams = (hipStream_t *)malloc(sizeof(hipStream_t) * numDevices);
-	if (!_streams)
-		_HIPLD_RETURN(hipErrorOutOfMemory);
-	for (int i = 0; i < numDevices; i++) {
-		struct _hip_stream_s *_hip_stream = (struct _hip_stream_s *)launchParamsList[i].stream;
-		_streams[i] = launchParamsList[i].stream;
-		launchParamsList[i].stream = _hip_stream->native;
-	}
-	hipError_t err = _HIPLD_DISPATCH(_hip_stream0, hipExtLaunchMultiKernelMultiDevice,
-		launchParamsList, numDevices, flags);
-	for (int i = 0; i < numDevices; i++)
-		launchParamsList[i].stream = _streams[i];
-	free(_streams);
-	_HIPLD_RETURN(err);
+	if (launchParamsList[0].stream)
+		_HIPLD_RETURN(_HIPLD_DISPATCH(launchParamsList[0].stream, hipExtLaunchMultiKernelMultiDevice,
+			launchParamsList, numDevices, flags));
+	else
+		_HIPLD_RETURN(_HIPLD_DISPATCH(_ctxDeviceGet(), hipExtLaunchMultiKernelMultiDevice,
+			launchParamsList, numDevices, flags));
 }
+
+hipError_t hipGetDevice(int* deviceId)
+{
+	_initOnce();
+	if (!deviceId)
+		_HIPLD_RETURN(hipErrorInvalidValue);
+	*deviceId = _ctxDeviceGet()->loaderIndex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+const char*
+hipGetErrorName(hipError_t hip_error) {
+	_initOnce();
+	return _HIPLD_DISPATCH(_ctxDeviceGet(), hipGetErrorName, hip_error);
+}
+
+const char*
+hipGetErrorString(hipError_t hipError) {
+	_initOnce();
+	return _HIPLD_DISPATCH(_ctxDeviceGet(), hipGetErrorString, hipError);
+}
+
+hipError_t
+hipMemcpyPeer(void* dst, int dstDeviceId, const void* src, int srcDeviceId, size_t sizeBytes) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(dstDeviceId);
+	_HIPLD_CHECK_DEVICEID(srcDeviceId);
+	struct _hip_device_s *_hip_dst_device = _deviceArray[dstDeviceId];
+	struct _hip_device_s *_hip_src_device = _deviceArray[srcDeviceId];
+	if (_hip_src_device->pDriver != _hip_dst_device->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_dst_device, hipMemcpyPeer,
+		dst, _hip_dst_device->driverIndex, src, _hip_src_device->driverIndex, sizeBytes));
+}
+
+hipError_t
+hipMemcpyPeerAsync(void* dst, int dstDeviceId, const void* src, int srcDevice, size_t sizeBytes, hipStream_t stream __dparm(0)) {
+	_initOnce();
+	_HIPLD_CHECK_DEVICEID(dstDeviceId);
+	_HIPLD_CHECK_DEVICEID(srcDevice);
+	struct _hip_device_s *_hip_dst_device = _deviceArray[dstDeviceId];
+	struct _hip_device_s *_hip_src_device = _deviceArray[srcDevice];
+	if (_hip_src_device->pDriver != _hip_dst_device->pDriver)
+		_HIPLD_RETURN(hipErrorInvalidDevice);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(_hip_dst_device, hipMemcpyPeerAsync,
+		dst, _hip_dst_device->driverIndex, src, _hip_src_device->driverIndex, sizeBytes,
+		stream));
+}
+
+hipError_t
+hipModuleGetTexRef(textureReference** texRef, hipModule_t hmod, const char* name) {
+	_initOnce();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(hmod, hipModuleGetTexRef,
+		texRef, hmod, name));
+	(*texRef)->textureObject->multiplex = hmod->multiplex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipLaunchCooperativeKernelMultiDevice(hipLaunchParams* launchParamsList, int  numDevices, unsigned int  flags)
+{
+	_initOnce();
+	if (!numDevices)
+		_HIPLD_RETURN(hipSuccess);
+	_HIPLD_CHECK_PTR(launchParamsList);
+	if (launchParamsList[0].stream)
+		_HIPLD_RETURN(_HIPLD_DISPATCH(launchParamsList[0].stream, hipLaunchCooperativeKernelMultiDevice,
+			launchParamsList, numDevices, flags));
+	else
+		_HIPLD_RETURN(_HIPLD_DISPATCH(_ctxDeviceGet(), hipLaunchCooperativeKernelMultiDevice,
+			launchParamsList, numDevices, flags));
+}
+
+void **
+__hipRegisterFatBinary(const void *Data) {
+	_initOnce();
+	void *** res = (void***)calloc(_hipDriverCount, sizeof(void**));
+	if (!res)
+		return NULL;
+	struct _hip_driver_s *driver = _driverList;
+	for (int i = 0; i < _hipDriverCount; i++) {
+		res[i] = driver->dispatch.__hipRegisterFatBinary(Data);
+		driver = driver->pNext;
+	}
+	return (void **)res;
+}
+
+void
+__hipUnregisterFatBinary(void **modules) {
+	_initOnce();
+	if (!modules)
+		return;
+	void *** res = (void ***)modules;
+	struct _hip_driver_s *driver = _driverList;
+	for (int i = 0; i < _hipDriverCount; i++)
+		if (res[i])
+			driver->dispatch.__hipUnregisterFatBinary(res[i]);
+	free(res);
+}
+
+/* from hipamd */
+
+static inline uint32_t f32_as_u32(float f) {
+  union {
+    float f;
+    uint32_t u;
+  } v;
+  v.f = f;
+  return v.u;
+}
+
+static inline float u32_as_f32(uint32_t u) {
+  union {
+    float f;
+    uint32_t u;
+  } v;
+  v.u = u;
+  return v.f;
+}
+
+static inline int min(int a, int b) {
+  return a < b ? a : b;
+}
+
+static inline int max(int a, int b) {
+  return a > b ? a : b;
+}
+
+static inline int clamp_int(int i, int l, int h) { return min(max(i, l), h); }
+
+
+// half float, the f16 is in the low 16 bits of the input argument
+
+static inline float __convert_half_to_float(uint32_t a) {
+  uint32_t u = ((a << 13) + 0x70000000U) & 0x8fffe000U;
+
+  uint32_t v =
+      f32_as_u32(u32_as_f32(u) * u32_as_f32(0x77800000U) /*0x1.0p+112f*/) + 0x38000000U;
+
+  u = (a & 0x7fff) != 0 ? v : u;
+
+  return u32_as_f32(u) * u32_as_f32(0x07800000U) /*0x1.0p-112f*/;
+}
+
+// float half with nearest even rounding
+// The lower 16 bits of the result is the bit pattern for the f16
+static inline uint32_t __convert_float_to_half(float a) {
+  uint32_t u = f32_as_u32(a);
+  int e = (int)((u >> 23) & 0xff) - 127 + 15;
+  uint32_t m = ((u >> 11) & 0xffe) | ((u & 0xfff) != 0);
+  uint32_t i = 0x7c00 | (m != 0 ? 0x0200 : 0);
+  uint32_t n = ((uint32_t)e << 12) | m;
+  uint32_t s = (u >> 16) & 0x8000;
+  int b = clamp_int(1 - e, 0, 13);
+  uint32_t d = (0x1000 | m) >> b;
+  d |= (d << b) != (0x1000 | m);
+  uint32_t v = e < 1 ? d : n;
+  v = (v >> 2) + (((v & 0x7) == 3) | ((v & 0x7) > 5));
+  v = e > 30 ? 0x7c00 : v;
+  v = e == 143 ? i : v;
+  return s | v;
+}
+
+float
+__gnu_h2f_ieee(unsigned short h) {
+  return __convert_half_to_float((uint32_t)h);
+}
+
+unsigned short
+__gnu_f2h_ieee(float f) {
+  return (unsigned short)__convert_float_to_half(f);
+}
+
 #include "hip_dispatch_stubs.h"

@@ -80,7 +80,9 @@ hipDriverGetVersion:
   type: :current_device
 #hipEventCreate
 #hipEventCreateWithFlags
-#hipEventDestroy
+hipEventDestroy:
+  type: hipEvent_t
+  name: event
 hipEventElapsedTime:
   type: hipEvent_t
   name: start
@@ -97,134 +99,296 @@ hipEventSynchronize:
 #hipExtLaunchMultiKernelMultiDevice
 hipExtMallocWithFlags:
   type: :current_device
-#hipExtModuleLaunchKernel
-#hipExtLaunchKernel
-#hipFree
-#hipFreeArray
-#hipFuncSetAttribute
-#hipFuncSetCacheConfig
-#hipFuncSetSharedMemConfig
+hipExtModuleLaunchKernel:
+  type: hipStream_t
+  name: hStream
+hipExtLaunchKernel:
+  type: hipStream_t
+  name: stream
+hipFree:
+  type: :current_device
+hipFreeArray:
+  type: :current_device
+hipFuncSetAttribute:
+  type: :current_device
+hipFuncSetCacheConfig:
+  type: :current_device
+hipFuncSetSharedMemConfig:
+  type: :current_device
 #hipGetDevice
 #hipGetDeviceCount
-#hipGetDeviceProperties
+hipGetDeviceProperties:
+  type: :device_id
+  name: deviceId
 #hipGetErrorName
 #hipGetErrorString
 #hipGetLastError
-#hipMemAdvise
-#hipMemAllocHost
-#hipHostAlloc
-#hipHostFree
-#hipHostGetDevicePointer
-#hipHostGetFlags
-#hipHostMalloc
-#hipHostRegister
-#hipHostUnregister
+hipMemAdvise:
+  type: :device_id
+  name: device
+hipMemAllocHost:
+  type: :current_device
+hipHostAlloc:
+  type: :current_device
+hipHostFree:
+  type: :current_device
+hipHostGetDevicePointer:
+  type: :current_device
+hipHostGetFlags:
+  type: :current_device
+hipHostMalloc:
+  type: :current_device
+hipHostRegister:
+  type: :current_device
+hipHostUnregister:
+  type: :current_device
 #hipInit
-#hipIpcCloseMemHandle
-#hipIpcGetMemHandle
-#hipIpcOpenMemHandle
-#hipIpcGetEventHandle
-#hipIpcOpenEventHandle
-#hipMalloc
-#hipMalloc3D
-#hipMalloc3DArray
-#hipMallocManaged
-#hipArrayCreate
-#hipArray3DCreate
-#hipMallocArray
-#hipMallocPitch
-#hipMemAllocPitch
-#hipMemcpy
-#hipMemcpyWithStream
-#hipMemcpyParam2D
-#hipMemcpy2D
-#hipMemcpy2DAsync
-#hipMemcpy2DToArray
-#hipMemcpy3D
-#hipMemcpy3DAsync
-#hipDrvMemcpy3D
-#hipDrvMemcpy3DAsync
-#hipMemcpyAsync
-#hipMemcpyDtoD
-#hipMemcpyDtoDAsync
-#hipMemcpyDtoH
-#hipMemcpyDtoHAsync
-#hipMemcpyFromSymbol
-#hipMemcpyFromSymbolAsync
-#hipMemcpyHtoD
-#hipMemcpyHtoDAsync
+hipIpcCloseMemHandle:
+  type: :current_device
+hipIpcGetMemHandle:
+  type: :current_device
+hipIpcOpenMemHandle:
+  type: :current_device
+hipIpcGetEventHandle:
+  type: hipEvent_t
+  name: event
+hipIpcOpenEventHandle:
+  type: :current_device
+  create: event
+hipMalloc:
+  type: :current_device
+hipMalloc3D:
+  type: :current_device
+hipMalloc3DArray:
+  type: :current_device
+hipMallocManaged:
+  type: :current_device
+hipArrayCreate:
+  type: :current_device
+hipArray3DCreate:
+  type: :current_device
+hipMallocArray:
+  type: :current_device
+hipMallocPitch:
+  type: :current_device
+hipMemAllocPitch:
+  type: :current_device
+hipMemcpy:
+  type: :current_device
+hipMemcpyWithStream:
+  type: hipStream_t
+  name: stream
+hipMemcpyParam2D:
+  type: :current_device
+hipMemcpy2D:
+  type: :current_device
+hipMemcpy2DAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpy2DToArray:
+  type: :current_device
+hipMemcpy3D:
+  type: :current_device
+hipMemcpy3DAsync:
+  type: hipStream_t
+  name: stream
+hipDrvMemcpy3D:
+  type: :current_device
+hipDrvMemcpy3DAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyDtoD:
+  type: :current_device
+hipMemcpyDtoDAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyDtoH:
+  type: :current_device
+hipMemcpyDtoHAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyFromSymbol:
+  type: :current_device
+hipMemcpyFromSymbolAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyHtoD:
+  type: :current_device
+hipMemcpyHtoDAsync:
+  type: hipStream_t
+  name: stream
 #hipMemcpyPeer
 #hipMemcpyPeerAsync
-#hipMemcpyToArray
-#hipMemcpyFromArray
-#hipMemcpyToSymbol
-#hipMemcpyToSymbolAsync
-#hipMemGetAddressRange
-#hipGetSymbolAddress
-#hipGetSymbolSize
-#hipMemGetInfo
-#hipMemPrefetchAsync
-#hipMemPtrGetInfo
-#hipMemRangeGetAttribute
-#hipMemRangeGetAttributes
-#hipMemset
-#hipMemsetAsync
-#hipMemsetD8
-#hipMemsetD8Async
-#hipMemsetD16
-#hipMemsetD16Async
-#hipMemsetD32
-#hipMemsetD32Async
-#hipMemset2D
-#hipMemset2DAsync
-#hipMemset3D
-#hipMemset3DAsync
-#hipModuleGetFunction
-#hipModuleGetGlobal
+hipMemcpyToArray:
+  type: :current_device
+hipMemcpyFromArray:
+  type: :current_device
+hipMemcpyToSymbol:
+  type: :current_device
+hipMemcpyToSymbolAsync:
+  type: hipStream_t
+  name: stream
+hipMemGetAddressRange:
+  type: :current_device
+hipGetSymbolAddress:
+  type: :current_device
+hipGetSymbolSize:
+  type: :current_device
+hipMemGetInfo:
+  type: :current_device
+hipMemPrefetchAsync:
+  type: :current_device
+hipMemPtrGetInfo:
+  type: :current_device
+hipMemRangeGetAttribute:
+  type: :current_device
+hipMemRangeGetAttributes:
+  type: :current_device
+hipMemset:
+  type: :current_device
+hipMemsetAsync:
+  type: hipStream_t
+  name: stream
+hipMemsetD8:
+  type: :current_device
+hipMemsetD8Async:
+  type: hipStream_t
+  name: stream
+hipMemsetD16:
+  type: :current_device
+hipMemsetD16Async:
+  type: hipStream_t
+  name: stream
+hipMemsetD32:
+  type: :current_device
+hipMemsetD32Async:
+  type: hipStream_t
+  name: stream
+hipMemset2D:
+  type: :current_device
+hipMemset2DAsync:
+  type: hipStream_t
+  name: stream
+hipMemset3D:
+  type: :current_device
+hipMemset3DAsync:
+  type: hipStream_t
+  name: stream
+hipModuleGetFunction:
+  type: hipModule_t
+  name: module
+  create: function
+hipModuleGetGlobal:
+  type: hipModule_t
+  name: hmod
 #hipModuleGetTexRef
-#hipModuleLaunchKernel
-#hipModuleLaunchKernelExt
-#hipLaunchCooperativeKernel
+hipModuleLaunchKernel:
+  type: hipStream_t
+  name: stream
+hipModuleLaunchKernelExt:
+  type: hipStream_t
+  name: stream
+hipLaunchCooperativeKernel:
+  type: hipStream_t
+  name: stream
 #hipLaunchCooperativeKernelMultiDevice
-#hipModuleLoad
-#hipModuleLoadData
-#hipModuleLoadDataEx
-#hipModuleUnload
-#hipModuleOccupancyMaxPotentialBlockSize
-#hipModuleOccupancyMaxPotentialBlockSizeWithFlags
-#hipModuleOccupancyMaxActiveBlocksPerMultiprocessor
-#hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
-#hipOccupancyMaxPotentialBlockSize
-#hipOccupancyMaxActiveBlocksPerMultiprocessor
-#hipOccupancyMaxActiveBlocksPerMultiprocessorWithFlags
-#hipFuncGetAttribute
-#hipFuncGetAttributes
+hipModuleLoad:
+  type: :current_device
+  create: module
+hipModuleLoadData:
+  type: :current_device
+  create: module
+hipModuleLoadDataEx:
+  type: :current_device
+  create: module
+hipModuleUnload:
+  type: hipModule_t
+  name: module
+hipModuleOccupancyMaxPotentialBlockSize:
+  type: hipFunction_t
+  name: f
+hipModuleOccupancyMaxPotentialBlockSizeWithFlags:
+  type: hipFunction_t
+  name: f
+hipModuleOccupancyMaxActiveBlocksPerMultiprocessor:
+  type: hipFunction_t
+  name: f
+hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags:
+  type: hipFunction_t
+  name: f
+hipOccupancyMaxPotentialBlockSize:
+  type: :current_device
+hipOccupancyMaxActiveBlocksPerMultiprocessor:
+  type: :current_device
+hipOccupancyMaxActiveBlocksPerMultiprocessorWithFlags:
+  type: :current_device
+hipFuncGetAttribute:
+  type: hipFunction_t
+  name: hfunc
+hipFuncGetAttributes:
+  type: :current_device
 #hipPeekAtLastError
-#hipPointerGetAttributes
-#hipProfilerStart
-#hipProfilerStop
-#hipRuntimeGetVersion
-#hipGetDeviceFlags
+hipPointerGetAttributes:
+  type: :current_device
+hipProfilerStart:
+  type: :current_device
+hipProfilerStop:
+  type: :current_device
+hipRuntimeGetVersion:
+  type: :current_device
+hipGetDeviceFlags:
+  type: :current_device
 #hipSetDevice
-#hipSetDeviceFlags
-#hipStreamAddCallback
-#hipStreamAttachMemAsync
-#hipStreamCreate
-#hipStreamCreateWithFlags
-#hipStreamCreateWithPriority
-#hipStreamDestroy
-#hipStreamGetFlags
-#hipStreamQuery
-#hipStreamSynchronize
-#hipStreamWaitEvent
-#__hipPopCallConfiguration
-#__hipPushCallConfiguration
+hipSetDeviceFlags:
+  type: :current_device
+hipStreamAddCallback:
+  type: hipStream_t
+  name: stream
+hipStreamAttachMemAsync:
+  type: hipStream_t
+  name: stream
+hipStreamCreate:
+  type: :current_device
+  create: stream
+hipStreamCreateWithFlags:
+  type: :current_device
+  create: stream
+hipStreamCreateWithPriority:
+  type: :current_device
+  create: stream
+hipStreamDestroy:
+  type: hipStream_t
+  name: stream
+hipStreamGetFlags:
+  type: hipStream_t
+  name: stream
+hipStreamQuery:
+  type: hipStream_t
+  name: stream
+hipStreamSynchronize:
+  type: hipStream_t
+  name: stream
+hipStreamWaitEvent:
+  type: hipStream_t
+  name: stream
+__hipPopCallConfiguration:
+  type: :current_device
+__hipPushCallConfiguration:
+  type: :current_device
 #__hipRegisterFatBinary
-#__hipRegisterFunction
-#__hipRegisterVar
-#__hipRegisterSurface
-#__hipRegisterTexture
-#__hipRegisterManagedVar
+__hipRegisterFunction:
+  type: :all_drivers
+__hipRegisterVar:
+  type: :all_drivers
+__hipRegisterSurface:
+  type: :all_drivers
+__hipRegisterTexture:
+  type: :all_drivers
+__hipRegisterManagedVar:
+  type: :all_drivers
 #__hipUnregisterFatBinary
 #__gnu_h2f_ieee
 #__gnu_f2h_ieee
