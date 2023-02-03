@@ -17,6 +17,9 @@ EOF
   dispatch_params += f.type.params.map { |p| p.name } if f.type.params
   check = "_HIPLD_RETURN"
   check = "_HIPLD_CHECK_ERR" if dispatch["create"]
+  check = "_RETURN" if (!f.type.type.is_a?(YAMLCAst::CustomType) || f.type.type.name != "hipError_t") && !dispatch["create"]
+  ret = "_HIPLD_RETURN"
+  ret = "_HIPLDRTC_RETURN" if f.type.type.is_a?(YAMLCAst::CustomType) && f.type.type.name == "hiprtcResult"
   case(dispatch["type"])
   when :current_context
     multiplex = "_hip_context"
@@ -36,6 +39,12 @@ EOF
 	struct _hip_device_s * _hip_device = _deviceArray[#{dispatch["name"]}];
 	#{dispatch["name"]} = _hip_device->driverIndex;
 EOF
+  when "textureReference"
+    multiplex = "#{dispatch["name"]}->textureObject"
+    puts <<EOF
+	_HIPLD_CHECK_PTR(#{dispatch["name"]});
+	_HIPLD_CHECK_PTR(#{multiplex});
+EOF
   when "hipDevice_t"
     multiplex = "_hip_device"
     puts <<EOF
@@ -44,7 +53,7 @@ EOF
         struct _hip_device_s * _hip_device = _deviceArray[index];
 	#{dispatch["name"]} = _hip_device->driverHandle;
 EOF
-  when "hipEvent_t", "hipCtx_t", "hipModule_t", "hipFunction_t"
+  when "hipEvent_t", "hipCtx_t", "hipModule_t", "hipFunction_t", "hiprtcProgram", "hiprtcLinkState", "hipTextureObject_t", "hipGraph_t", "hipGraphNode_t"
     multiplex = dispatch["name"]
   when "hipStream_t"
     multiplex = "_hip_device"

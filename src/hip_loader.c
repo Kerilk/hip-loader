@@ -53,6 +53,14 @@ struct __hip_texture {
 	struct _multiplex_s *multiplex;
 };
 
+struct ihiprtcLinkState {
+	struct _multiplex_s *multiplex;
+};
+
+struct _hiprtcProgram {
+	struct _multiplex_s *multiplex;
+};
+
 struct _hip_device_s {
 	struct _multiplex_s   *multiplex;
 	struct _multiplex_s    mplx;
@@ -161,6 +169,23 @@ static char *_get_next(char *paths) {
 	return next;
 }
 
+#define _RETURN(expr)  \
+do {                   \
+	return (expr); \
+} while(0)
+
+#define _HIPLDRTC_RETURN(expr)  \
+do {                            \
+	return (expr);          \
+} while(0)
+
+#define _HIPLDRTC_CHECK_ERR(err)        \
+do {                                    \
+	hiprtcResult _err = (err);      \
+	if(_err != HIPRTC_SUCCESS)      \
+		_HIPLDRTC_RETURN(_err); \
+} while(0)
+
 #define _HIPLD_RETURN(err)                 \
 do {                                       \
 	hipError_t _err = (err);           \
@@ -200,7 +225,7 @@ do {                                                   \
 } while(0)
 
 
-#define _HIPLD_DISPATCH_TABLE(handle) (handle->multiplex->dispatch)
+#define _HIPLD_DISPATCH_TABLE(handle) ((handle)->multiplex->dispatch)
 #define _HIPLD_DISPATCH_API(handle, api) _HIPLD_DISPATCH_TABLE(handle).api
 #define _HIPLD_DISPATCH(handle, api, ...) _HIPLD_DISPATCH_API(handle, api)(__VA_ARGS__)
 
@@ -637,15 +662,6 @@ hipMemcpyPeerAsync(void* dst, int dstDeviceId, const void* src, int srcDevice, s
 }
 
 hipError_t
-hipModuleGetTexRef(textureReference** texRef, hipModule_t hmod, const char* name) {
-	_initOnce();
-	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(hmod, hipModuleGetTexRef,
-		texRef, hmod, name));
-	(*texRef)->textureObject->multiplex = hmod->multiplex;
-	_HIPLD_RETURN(hipSuccess);
-}
-
-hipError_t
 hipLaunchCooperativeKernelMultiDevice(hipLaunchParams* launchParamsList, int  numDevices, unsigned int  flags)
 {
 	_initOnce();
@@ -685,6 +701,26 @@ __hipUnregisterFatBinary(void **modules) {
 		if (res[i])
 			driver->dispatch.__hipUnregisterFatBinary(res[i]);
 	free(res);
+}
+
+const char*
+hipApiName(uint32_t id) {
+	_initOnce();
+	struct _hip_driver_s *driver = _driverList;
+	for (int i = 0; i < _hipDriverCount; i++) {
+		const char *name = driver->dispatch.hipApiName(id);
+		if (name)
+			return name;
+	}
+	return NULL;
+}
+
+hiprtcResult
+hiprtcDestroyProgram(hiprtcProgram* prog) {
+	_initOnce();
+	if (!prog)
+		return HIPRTC_ERROR_INVALID_INPUT;
+	_HIPLDRTC_RETURN(_HIPLD_DISPATCH(*prog, hiprtcDestroyProgram, prog));
 }
 
 /* from hipamd */

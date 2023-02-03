@@ -284,7 +284,10 @@ hipModuleGetFunction:
 hipModuleGetGlobal:
   type: hipModule_t
   name: hmod
-#hipModuleGetTexRef
+hipModuleGetTexRef:
+  type: hipModule_t
+  name: hmod
+  create: "(&(*texRef)->textureObject)"
 hipModuleLaunchKernel:
   type: hipStream_t
   name: stream
@@ -392,112 +395,268 @@ __hipRegisterManagedVar:
 #__hipUnregisterFatBinary
 #__gnu_h2f_ieee
 #__gnu_f2h_ieee
-#hipConfigureCall
-#hipSetupArgument
-#hipLaunchByPtr
-#hipLaunchKernel
-#hipRegisterApiCallback
-#hipRemoveApiCallback
-#hipRegisterActivityCallback
-#hipRemoveActivityCallback
+hipConfigureCall:
+  type: hipStream_t
+  name: stream
+hipSetupArgument:
+  type: :current_device
+hipLaunchByPtr:
+  type: :current_device
+hipLaunchKernel:
+  type: hipStream_t
+  name: stream
 #hipApiName
-#hipKernelNameRef
-#hipKernelNameRefByPtr
-#hipGetStreamDeviceId
-#hipProfilerStart
-#hipProfilerStop
-#hiprtcCompileProgram
-#hiprtcCreateProgram
+hipKernelNameRef:
+  type: hipFunction_t
+  name: f
+hipKernelNameRefByPtr:
+  type: hipStream_t
+  name: stream
+hipGetStreamDeviceId:
+  type: hipStream_t
+  name: stream
+hiprtcCompileProgram:
+  type: hiprtcProgram
+  name: prog
+hiprtcCreateProgram:
+  type: :current_device
+  create: prog
 #hiprtcDestroyProgram
-#hiprtcGetLoweredName
-#hiprtcGetProgramLog
-#hiprtcGetProgramLogSize
-#hiprtcGetCode
-#hiprtcGetCodeSize
-#hiprtcGetErrorString
-#hiprtcAddNameExpression
-#hiprtcVersion
-#hiprtcLinkCreate
-#hiprtcLinkAddFile
-#hiprtcLinkAddData
-#hiprtcLinkComplete
-#hiprtcLinkDestroy
-#hipBindTexture
-#hipBindTexture2D
-#hipBindTextureToArray
-#hipBindTextureToMipmappedArray
-#hipGetTextureAlignmentOffset
-#hipGetTextureReference
-#hipUnbindTexture
-#hipCreateChannelDesc
-#hipCreateTextureObject
-#hipDestroyTextureObject
-#hipGetChannelDesc
-#hipGetTextureObjectResourceDesc
-#hipGetTextureObjectResourceViewDesc
-#hipGetTextureObjectTextureDesc
-#hipTexRefGetAddress
-#hipTexRefGetAddressMode
-#hipTexRefGetArray
-#hipTexRefGetBorderColor
-#hipTexRefGetFilterMode
-#hipTexRefGetFlags
-#hipTexRefGetFormat
-#hipTexRefGetMaxAnisotropy
-#hipTexRefGetMipmapFilterMode
-#hipTexRefGetMipmapLevelBias
-#hipTexRefGetMipmapLevelClamp
-#hipTexRefGetMipmappedArray
-#hipTexRefSetAddress
-#hipTexRefSetAddress2D
-#hipTexRefSetAddressMode
-#hipTexRefSetArray
-#hipTexRefSetBorderColor
-#hipTexRefSetFilterMode
-#hipTexRefSetFlags
-#hipTexRefSetFormat
-#hipTexRefSetMaxAnisotropy
-#hipTexRefSetMipmapFilterMode
-#hipTexRefSetMipmapLevelBias
-#hipTexRefSetMipmapLevelClamp
-#hipTexRefSetMipmappedArray
-#hipMipmappedArrayCreate
-#hipMallocMipmappedArray
-#hipMipmappedArrayDestroy
-#hipFreeMipmappedArray
-#hipMipmappedArrayGetLevel
-#hipGetMipmappedArrayLevel
-#hipMallocHost
-#hipFreeHost
-#hipTexObjectCreate
-#hipTexObjectDestroy
-#hipTexObjectGetResourceDesc
-#hipTexObjectGetResourceViewDesc
-#hipTexObjectGetTextureDesc
-#hip_impl::hipLaunchKernelGGLImpl*
-#hip_impl::demangle*
-#hipCreateSurfaceObject*
-#hipDestroySurfaceObject*
-#hipHccModuleLaunchKernel*
-#hipExtModuleLaunchKernel*
-#hipInitActivityCallback*
-#hipEnableActivityCallback*
-#hipGetCmdName*
-#hipExtStreamCreateWithCUMask
-#hipStreamGetPriority
-#hipMemcpy2DFromArray
-#hipMemcpy2DFromArrayAsync
-#hipMemcpyAtoH
-#hipMemcpyHtoA
-#hipMemcpyParam2DAsync
-#__hipGetPCH
-#hipExtStreamGetCUMask
-#hipGraphCreate
-#hipGraphDestroy
-#hipGraphAddKernelNode
-#hipGraphAddMemsetNode
-#hipGraphAddMemcpyNode
-#hipGraphAddMemcpyNode1D
+hiprtcGetLoweredName:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetProgramLog:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetProgramLogSize:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetCode:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetCodeSize:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetErrorString:
+  type: :current_device
+hiprtcAddNameExpression:
+  type: hiprtcProgram
+  name: prog
+hiprtcVersion:
+  type: :current_device
+hiprtcLinkCreate:
+  type: :current_device
+  create: hip_link_state_ptr
+hiprtcLinkAddFile:
+  type: hiprtcLinkState
+  name: hip_link_state
+hiprtcLinkAddData:
+  type: hiprtcLinkState
+  name: hip_link_state
+hiprtcLinkComplete:
+  type: hiprtcLinkState
+  name: hip_link_state
+hiprtcLinkDestroy:
+  type: hiprtcLinkState
+  name: hip_link_state
+hipBindTexture:
+  type: textureReference
+  name: tex
+hipBindTexture2D:
+  type: textureReference
+  name: tex
+hipBindTextureToArray:
+  type: textureReference
+  name: tex
+hipBindTextureToMipmappedArray:
+  type: textureReference
+  name: tex
+hipGetTextureAlignmentOffset:
+  type: textureReference
+  name: texref
+hipGetTextureReference:
+  type: :current_device
+  create: "(&(*texref)->textureObject)"
+hipUnbindTexture:
+  type: textureReference
+  name: tex
+hipCreateChannelDesc:
+  type: :current_device
+hipCreateTextureObject:
+  type: :current_device
+  create: pTexObject
+hipDestroyTextureObject:
+  type: hipTextureObject_t
+  name: textureObject
+hipGetChannelDesc:
+  type: :current_device
+hipGetTextureObjectResourceDesc:
+  type: hipTextureObject_t
+  name: textureObject
+hipGetTextureObjectResourceViewDesc:
+  type: hipTextureObject_t
+  name: textureObject
+hipGetTextureObjectTextureDesc:
+  type: hipTextureObject_t
+  name: textureObject
+hipTexRefGetAddress:
+  type: textureReference
+  name: texRef
+hipTexRefGetAddressMode:
+  type: textureReference
+  name: texRef
+hipTexRefGetArray:
+  type: textureReference
+  name: texRef
+hipTexRefGetBorderColor:
+  type: textureReference
+  name: texRef
+hipTexRefGetFilterMode:
+  type: textureReference
+  name: texRef
+hipTexRefGetFlags:
+  type: textureReference
+  name: texRef
+hipTexRefGetFormat:
+  type: textureReference
+  name: texRef
+hipTexRefGetMaxAnisotropy:
+  type: textureReference
+  name: texRef
+hipTexRefGetMipmapFilterMode:
+  type: textureReference
+  name: texRef
+hipTexRefGetMipmapLevelBias:
+  type: textureReference
+  name: texRef
+hipTexRefGetMipmapLevelClamp:
+  type: textureReference
+  name: texRef
+hipTexRefGetMipmappedArray:
+  type: textureReference
+  name: texRef
+hipTexRefSetAddress:
+  type: textureReference
+  name: texRef
+hipTexRefSetAddress2D:
+  type: textureReference
+  name: texRef
+hipTexRefSetAddressMode:
+  type: textureReference
+  name: texRef
+hipTexRefSetArray:
+  type: textureReference
+  name: tex
+hipTexRefSetBorderColor:
+  type: textureReference
+  name: texRef
+hipTexRefSetFilterMode:
+  type: textureReference
+  name: texRef
+hipTexRefSetFlags:
+  type: textureReference
+  name: texRef
+hipTexRefSetFormat:
+  type: textureReference
+  name: texRef
+hipTexRefSetMaxAnisotropy:
+  type: textureReference
+  name: texRef
+hipTexRefSetMipmapFilterMode:
+  type: textureReference
+  name: texRef
+hipTexRefSetMipmapLevelBias:
+  type: textureReference
+  name: texRef
+hipTexRefSetMipmapLevelClamp:
+  type: textureReference
+  name: texRef
+hipTexRefSetMipmappedArray:
+  type: textureReference
+  name: texRef
+hipMipmappedArrayCreate:
+  type: :current_device
+hipMallocMipmappedArray:
+  type: :current_device
+hipMipmappedArrayDestroy:
+  type: :current_device
+hipFreeMipmappedArray:
+  type: :current_device
+hipMipmappedArrayGetLevel:
+  type: :current_device
+hipGetMipmappedArrayLevel:
+  type: :current_device
+hipMallocHost:
+  type: :current_device
+hipFreeHost:
+  type: :current_device
+hipTexObjectCreate:
+  type: :current_device
+  create: pTexObject
+hipTexObjectDestroy:
+  type: hipTextureObject_t
+  name: texObject
+hipTexObjectGetResourceDesc:
+  type: hipTextureObject_t
+  name: texObject
+hipTexObjectGetResourceViewDesc:
+  type: hipTextureObject_t
+  name: texObject
+hipTexObjectGetTextureDesc:
+  type: hipTextureObject_t
+  name: texObject
+#_ZN8hip_impl22hipLaunchKernelGGLImplEmRK4dim3S2_jP12ihipStream_tPPv
+#_Z22hipCreateSurfaceObjectPP13__hip_surfacePK15hipResourceDesc
+#_Z23hipDestroySurfaceObjectP13__hip_surface
+#_Z24hipHccModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_
+#_Z24hipExtModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_j
+hipGetCmdName:
+  type: :current_device
+hipExtStreamCreateWithCUMask:
+  type: :current_device
+  create: stream
+hipStreamGetPriority:
+  type: hipStream_t
+  name: stream
+hipMemcpy2DFromArray:
+  type: :current_device
+hipMemcpy2DFromArrayAsync:
+  type: hipStream_t
+  name: stream
+hipMemcpyAtoH:
+  type: :current_device
+hipMemcpyHtoA:
+  type: :current_device
+hipMemcpyParam2DAsync:
+  type: hipStream_t
+  name: stream
+__hipGetPCH:
+  type: :current_device
+hipExtStreamGetCUMask:
+  type: hipStream_t
+  name: stream
+hipGraphCreate:
+  type: :current_device
+  create: pGraph
+hipGraphDestroy:
+  type: hipGraph_t
+  name: graph
+hipGraphAddKernelNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphAddMemsetNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphAddMemcpyNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphAddMemcpyNode1D:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
 #hipGraphInstantiate
 #hipGraphLaunch
 #hipStreamIsCapturing
