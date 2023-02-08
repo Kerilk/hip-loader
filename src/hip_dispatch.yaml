@@ -657,165 +657,470 @@ hipGraphAddMemcpyNode1D:
   type: hipGraph_t
   name: graph
   create: pGraphNode
-#hipGraphInstantiate
-#hipGraphLaunch
-#hipStreamIsCapturing
-#hipStreamBeginCapture
-#hipStreamEndCapture
-#hipGraphExecDestroy
-#hipImportExternalSemaphore
-#hipSignalExternalSemaphoresAsync
-#hipWaitExternalSemaphoresAsync
-#hipDestroyExternalSemaphore
-#hipImportExternalMemory
-#hipExternalMemoryGetMappedBuffer
-#hipDestroyExternalMemory
-#hipMemcpy2DToArrayAsync
-#hipDrvMemcpy2DUnaligned
-#hipArrayDestroy
+hipGraphInstantiate:
+  type: hipGraph_t
+  name: graph
+  create: pGraphExec
+  create_on_error: pErrorNode
+hipGraphLaunch:
+  type: hipGraphExec_t
+  name: graphExec
+hipStreamIsCapturing:
+  type: hipStream_t
+  name: stream
+hipStreamBeginCapture:
+  type: hipStream_t
+  name: stream
+hipStreamEndCapture:
+  type: hipStream_t
+  name: stream
+  create: pGraph
+hipGraphExecDestroy:
+  type: hipGraphExec_t
+  name: graphExec
+hipImportExternalSemaphore:
+  type: :current_device
+hipSignalExternalSemaphoresAsync:
+  type: hipStream_t
+  name: stream
+hipWaitExternalSemaphoresAsync:
+  type: hipStream_t
+  name: stream
+hipDestroyExternalSemaphore:
+  type: :current_device
+hipImportExternalMemory:
+  type: :current_device
+hipExternalMemoryGetMappedBuffer:
+  type: :current_device
+hipDestroyExternalMemory:
+  type: :current_device
+hipMemcpy2DToArrayAsync:
+  type: hipStream_t
+  name: stream
+hipDrvMemcpy2DUnaligned:
+  type: :current_device
+hipArrayDestroy:
+  type: :current_device
 #hipGLGetDevices
-#hipGraphicsGLRegisterBuffer
-#hipGraphicsMapResources
-#hipGraphicsResourceGetMappedPointer
-#hipGraphicsUnmapResources
-#hipGraphicsUnregisterResource
-#hipGraphGetNodes
-#hipGraphGetRootNodes
-#hipGraphKernelNodeGetParams
-#hipGraphKernelNodeSetParams
-#hipGraphMemcpyNodeGetParams
-#hipGraphMemcpyNodeSetParams
-#hipGraphMemsetNodeGetParams
-#hipGraphMemsetNodeSetParams
-#hipGraphAddDependencies
-#hipStreamWaitValue32
-#hipStreamWaitValue64
-#hipStreamWriteValue32
-#hipStreamWriteValue64
-#hipGraphExecKernelNodeSetParams
-#hipGraphAddEmptyNode
-#hipStreamUpdateCaptureDependencies
-#hipGraphRemoveDependencies
-#hipGraphGetEdges
-#hipGraphNodeGetDependencies
-#hipGraphNodeGetDependentNodes
-#hipGraphNodeGetType
-#hipGraphDestroyNode
-#hipGraphClone
-#hipGraphNodeFindInClone
-#hipGraphAddChildGraphNode
-#hipGraphChildGraphNodeGetGraph
-#hipGraphExecChildGraphNodeSetParams
-#hipGraphAddMemcpyNodeFromSymbol
-#hipGraphMemcpyNodeSetParamsFromSymbol
-#hipGraphExecMemcpyNodeSetParamsFromSymbol
-#hipGraphAddMemcpyNodeToSymbol
-#hipGraphMemcpyNodeSetParamsToSymbol
-#hipGraphExecMemcpyNodeSetParamsToSymbol
-#hipGraphExecMemcpyNodeSetParams
-#hipGraphMemcpyNodeSetParams1D
-#hipGraphExecMemcpyNodeSetParams1D
-#hipGraphAddEventRecordNode
-#hipGraphEventRecordNodeGetEvent
-#hipGraphEventRecordNodeSetEvent
-#hipGraphExecEventRecordNodeSetEvent
-#hipGraphAddEventWaitNode
-#hipGraphEventWaitNodeGetEvent
-#hipGraphEventWaitNodeSetEvent
-#hipGraphExecEventWaitNodeSetEvent
-#hipGraphAddHostNode
-#hipGraphHostNodeGetParams
-#hipGraphHostNodeSetParams
-#hipGraphExecHostNodeSetParams
-#hipGraphExecUpdate
-#hipGraphInstantiateWithFlags
-#hipGraphExecMemsetNodeSetParams
-#hipDeviceGetGraphMemAttribute
-#hipDeviceSetGraphMemAttribute
-#hipDeviceGraphMemTrim
-#amd_dbgapi_get_build_name
-#amd_dbgapi_get_git_hash
-#amd_dbgapi_get_build_id
-#hipStreamGetCaptureInfo
+hipGraphicsGLRegisterBuffer:
+  type: :current_device
+  create: resource
+hipGraphicsMapResources:
+  type: hipStream_t
+  name: stream
+hipGraphicsResourceGetMappedPointer:
+  type: hipGraphicsResource_t
+  name: resource
+hipGraphicsUnmapResources:
+  type: hipStream_t
+  name: stream
+hipGraphicsUnregisterResource:
+  type: hipGraphicsResource_t
+  name: resource
+hipGraphGetNodes:
+  type: hipGraph_t
+  name: graph
+  create:
+    names:
+    - nodes
+    size: "(*numNodes)"
+hipGraphGetRootNodes:
+  type: hipGraph_t
+  name: graph
+  create:
+    names:
+    - pRootNodes
+    size: "(*pNumRootNodes)"
+hipGraphKernelNodeGetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphKernelNodeSetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphMemcpyNodeGetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphMemcpyNodeSetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphMemsetNodeGetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphMemsetNodeSetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphAddDependencies:
+  type: hipGraph_t
+  name: graph
+hipStreamWaitValue32:
+  type: hipStream_t
+  name: stream
+hipStreamWaitValue64:
+  type: hipStream_t
+  name: stream
+hipStreamWriteValue32:
+  type: hipStream_t
+  name: stream
+hipStreamWriteValue64:
+  type: hipStream_t
+  name: stream
+hipGraphExecKernelNodeSetParams:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddEmptyNode:
+  type: hipGraph_t
+  name: graph
+hipStreamUpdateCaptureDependencies:
+  type: hipStream_t
+  name: stream
+hipGraphRemoveDependencies:
+  type: hipGraph_t
+  name: graph
+hipGraphGetEdges:
+  type: hipGraph_t
+  name: graph
+  create:
+    names:
+    - from
+    - to
+    size: "(*numEdges)"
+hipGraphNodeGetDependencies:
+  type: hipGraphNode_t
+  name: node
+  create:
+    names:
+    - pDependencies
+    size: "(*pNumDependencies)"
+hipGraphNodeGetDependentNodes:
+  type: hipGraphNode_t
+  name: node
+  create:
+    names:
+    - pDependentNodes
+    size: "(*pNumDependentNodes)"
+hipGraphNodeGetType:
+  type: hipGraphNode_t
+  name: node
+hipGraphDestroyNode:
+  type: hipGraphNode_t
+  name: node
+hipGraphClone:
+  type: hipGraph_t
+  name: originalGraph
+  create: pGraphClone
+hipGraphNodeFindInClone:
+  type: hipGraph_t
+  name: clonedGraph
+  create: pNode
+hipGraphAddChildGraphNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphChildGraphNodeGetGraph:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecChildGraphNodeSetParams:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddMemcpyNodeFromSymbol:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphMemcpyNodeSetParamsFromSymbol:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecMemcpyNodeSetParamsFromSymbol:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddMemcpyNodeToSymbol:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphMemcpyNodeSetParamsToSymbol:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecMemcpyNodeSetParamsToSymbol:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphExecMemcpyNodeSetParams:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphMemcpyNodeSetParams1D:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecMemcpyNodeSetParams1D:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddEventRecordNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphEventRecordNodeGetEvent:
+  type: hipGraphNode_t
+  name: node
+hipGraphEventRecordNodeSetEvent:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecEventRecordNodeSetEvent:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddEventWaitNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphEventWaitNodeGetEvent:
+  type: hipGraphNode_t
+  name: node
+hipGraphEventWaitNodeSetEvent:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecEventWaitNodeSetEvent:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphAddHostNode:
+  type: hipGraph_t
+  name: graph
+  create: pGraphNode
+hipGraphHostNodeGetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphHostNodeSetParams:
+  type: hipGraphNode_t
+  name: node
+hipGraphExecHostNodeSetParams:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipGraphExecUpdate:
+  type: hipGraphExec_t
+  name: hGraphExec
+  create_on_error: hErrorNode_out
+hipGraphInstantiateWithFlags:
+  type: hipGraph_t
+  name: graph
+  create: pGraphExec
+hipGraphExecMemsetNodeSetParams:
+  type: hipGraphExec_t
+  name: hGraphExec
+hipDeviceGetGraphMemAttribute:
+  type: :device_id
+  name: device
+hipDeviceSetGraphMemAttribute:
+  type: :device_id
+  name: device
+hipDeviceGraphMemTrim:
+  type: :device_id
+  name: device
+amd_dbgapi_get_build_name:
+  type: :current_device
+amd_dbgapi_get_git_hash:
+  type: :current_device
+amd_dbgapi_get_build_id:
+  type: :current_device
+hipStreamGetCaptureInfo:
+  type: hipStream_t
+  name: stream
 #hipStreamGetCaptureInfo_v2
-#hipGraphicsGLRegisterImage
-#hipGraphicsSubResourceGetMappedArray
-#hipPointerGetAttribute
-#hipDrvPointerGetAttributes
-#hipThreadExchangeStreamCaptureMode
-#hipGraphKernelNodeSetAttribute
-#hipGraphKernelNodeGetAttribute
-#hipDeviceGetUuid
-#hipDeviceGetDefaultMemPool
-#hipDeviceSetMemPool
-#hipDeviceGetMemPool
-#hipMallocAsync
-#hipFreeAsync
-#hipMemPoolTrimTo
-#hipMemPoolSetAttribute
-#hipMemPoolGetAttribute
+hipGraphicsGLRegisterImage:
+  type: :current_device
+  create: resource
+hipGraphicsSubResourceGetMappedArray:
+  type: hipGraphicsResource_t
+  name: resource
+hipPointerGetAttribute:
+  type: :current_device
+hipDrvPointerGetAttributes:
+  type: :current_device
+hipThreadExchangeStreamCaptureMode:
+  type: :current_device
+hipGraphKernelNodeSetAttribute:
+  type: hipGraphNode_t
+  name: hNode
+hipGraphKernelNodeGetAttribute:
+  type: hipGraphNode_t
+  name: hNode
+hipDeviceGetUuid:
+  type: hipDevice_t
+  name: device
+hipDeviceGetDefaultMemPool:
+  type: :device_id
+  name: device
+hipDeviceSetMemPool:
+  type: :device_id
+  name: device
+hipDeviceGetMemPool:
+  type: :device_id
+  name: device
+hipMallocAsync:
+  type: hipStream_t
+  name: stream
+hipFreeAsync:
+  type: hipStream_t
+  name: stream
+hipMemPoolTrimTo:
+  type: hipMemPool_t
+  name: mem_pool
+hipMemPoolSetAttribute:
+  type: hipMemPool_t
+  name: mem_pool
+hipMemPoolGetAttribute:
+  type: hipMemPool_t
+  name: mem_pool
 #hipMemPoolSetAccess
 #hipMemPoolGetAccess
 #hipMemPoolCreate
-#hipMemPoolDestroy
-#hipMallocFromPoolAsync
-#hipMemPoolExportToShareableHandle
-#hipMemPoolImportFromShareableHandle
-#hipMemPoolExportPointer
-#hipMemPoolImportPointer
-#hipMemAddressFree
-#hipMemAddressReserve
+hipMemPoolDestroy:
+  type: hipMemPool_t
+  name: mem_pool
+hipMallocFromPoolAsync:
+  type: hipStream_t
+  name: stream
+hipMemPoolExportToShareableHandle:
+  type: hipMemPool_t
+  name: mem_pool
+hipMemPoolImportFromShareableHandle:
+  type: :current_device
+  create: mem_pool
+hipMemPoolExportPointer:
+  type: :current_device
+hipMemPoolImportPointer:
+  type: hipMemPool_t
+  name: mem_pool
+hipMemAddressFree:
+  type: :current_device
+hipMemAddressReserve:
+  type: :current_device
 #hipMemCreate
-#hipMemExportToShareableHandle
+hipMemExportToShareableHandle:
+  type: hipMemGenericAllocationHandle_t
+  name: handle
 #hipMemGetAccess
 #hipMemGetAllocationGranularity
 #hipMemGetAllocationPropertiesFromHandle
-#hipMemImportFromShareableHandle
-#hipMemMap
-#hipMemMapArrayAsync
-#hipMemRelease
-#hipMemRetainAllocationHandle
+hipMemImportFromShareableHandle:
+  type: :current_device
+  create: handle
+hipMemMap:
+  type: hipMemGenericAllocationHandle_t
+  name: handle
+hipMemMapArrayAsync:
+  type: hipStream_t
+  name: stream
+hipMemRelease:
+  type: hipMemGenericAllocationHandle_t
+  name: handle
+hipMemRetainAllocationHandle:
+  type: :current_device
+  create: handle
 #hipMemSetAccess
-#hipMemUnmap
-#hipMemcpy_spt
-#hipMemcpyAsync_spt
-#hipStreamSynchronize_spt
-#hipMemcpyToSymbol_spt
-#hipMemcpyFromSymbol_spt
-#hipMemcpy2D_spt
-#hipMemcpy2DToArray_spt
-#hipMemcpy2DFromArray_spt
-#hipMemcpy3D_spt
-#hipMemset_spt
-#hipMemset2D_spt
-#hipMemset3D_spt
-#hipStreamQuery_spt
-#hipStreamGetFlags_spt
-#hipStreamGetPriority_spt
-#hipStreamWaitEvent_spt
-#hipEventRecord_spt
-#hipLaunchKernel_spt
-#hipLaunchCooperativeKernel_spt
-#hipDeviceSetLimit
-#hiprtcGetBitcode
-#hiprtcGetBitcodeSize
-#hipGraphLaunch_spt
-#hipStreamBeginCapture_spt
-#hipStreamEndCapture_spt
-#hipStreamIsCapturing_spt
-#hipStreamGetCaptureInfo_spt
+hipMemUnmap:
+  type: :current_device
+hipMemcpy_spt:
+  type: :current_device
+hipMemcpyAsync_spt:
+  type: hipStream_t
+  name: stream
+hipStreamSynchronize_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpyToSymbol_spt:
+  type: :current_device
+hipMemcpyFromSymbol_spt:
+  type: :current_device
+hipMemcpy2D_spt:
+  type: :current_device
+hipMemcpy2DToArray_spt:
+  type: :current_device
+hipMemcpy2DFromArray_spt:
+  type: :current_device
+hipMemcpy3D_spt:
+  type: :current_device
+hipMemset_spt:
+  type: :current_device
+hipMemset2D_spt:
+  type: :current_device
+hipMemset3D_spt:
+  type: :current_device
+hipStreamQuery_spt:
+  type: hipStream_t
+  name: stream
+hipStreamGetFlags_spt:
+  type: hipStream_t
+  name: stream
+hipStreamGetPriority_spt:
+  type: hipStream_t
+  name: stream
+hipStreamWaitEvent_spt:
+  type: hipStream_t
+  name: stream
+hipEventRecord_spt:
+  type: hipEvent_t
+  name: event
+hipLaunchKernel_spt:
+  type: hipStream_t
+  name: stream
+hipLaunchCooperativeKernel_spt:
+  type: hipStream_t
+  name: hStream
+hipDeviceSetLimit:
+  type: :current_device
+hiprtcGetBitcode:
+  type: hiprtcProgram
+  name: prog
+hiprtcGetBitcodeSize:
+  type: hiprtcProgram
+  name: prog
+hipGraphLaunch_spt:
+  type: hipGraphExec_t
+  name: graphExec
+hipStreamBeginCapture_spt:
+  type: hipStream_t
+  name: stream
+hipStreamEndCapture_spt:
+  type: hipStream_t
+  name: stream
+  create: pGraph
+hipStreamIsCapturing_spt:
+  type: hipStream_t
+  name: stream
+hipStreamGetCaptureInfo_spt:
+  type: hipStream_t
+  name: stream
 #hipStreamGetCaptureInfo_v2_spt
-#hipStreamAddCallback_spt
-#hipMemsetAsync_spt
-#hipMemset2DAsync_spt
-#hipMemset3DAsync_spt
-#hipMemcpy3DAsync_spt
-#hipMemcpy2DAsync_spt
-#hipMemcpyFromSymbolAsync_spt
-#hipMemcpyToSymbolAsync_spt
-#hipMemcpyFromArray_spt
-#hipMemcpy2DToArray_spt
-#hipMemcpy2DFromArrayAsync_spt
-#hipMemcpy2DToArrayAsync_spt
-#hipDrvGetErrorName
-#hipDrvGetErrorString
+hipStreamAddCallback_spt:
+  type: hipStream_t
+  name: stream
+hipMemsetAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemset2DAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemset3DAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpy3DAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpy2DAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpyFromSymbolAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpyToSymbolAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpyFromArray_spt:
+  type: :current_device
+hipMemcpy2DToArray_spt:
+  type: :current_device
+hipMemcpy2DFromArrayAsync_spt:
+  type: hipStream_t
+  name: stream
+hipMemcpy2DToArrayAsync_spt:
+  type: hipStream_t
+  name: stream
+hipDrvGetErrorName:
+  type: :current_device
+hipDrvGetErrorString:
+  type: :current_device

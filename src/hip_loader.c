@@ -61,6 +61,14 @@ struct _hiprtcProgram {
 	struct _multiplex_s *multiplex;
 };
 
+struct _hipGraphicsResource {
+	struct _multiplex_s *multiplex;
+};
+
+struct ihipMemGenericAllocationHandle {
+	struct _multiplex_s *multiplex;
+};
+
 struct _hip_device_s {
 	struct _multiplex_s   *multiplex;
 	struct _multiplex_s    mplx;
@@ -674,6 +682,215 @@ hipLaunchCooperativeKernelMultiDevice(hipLaunchParams* launchParamsList, int  nu
 	else
 		_HIPLD_RETURN(_HIPLD_DISPATCH(_ctxDeviceGet(), hipLaunchCooperativeKernelMultiDevice,
 			launchParamsList, numDevices, flags));
+}
+
+hipError_t
+hipGLGetDevices(unsigned int* pHipDeviceCount, int* pHipDevices, unsigned int hipDeviceCount, hipGLDeviceList deviceList) {
+	_initOnce();
+	unsigned int _count;
+	if (!pHipDeviceCount && pHipDevices)
+		pHipDeviceCount = &_count;
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_ctxDeviceGet(), hipGLGetDevices,
+		pHipDeviceCount, pHipDevices, hipDeviceCount, deviceList));
+	if (pHipDevices)
+		for (unsigned int i = 0; i < *pHipDeviceCount; i++) {
+			pHipDevices[i] = _ctxDeviceGet()->pDriver->pDevices[pHipDevices[i]].loaderIndex;
+		}
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipStreamGetCaptureInfo_v2(hipStream_t stream, hipStreamCaptureStatus* captureStatus_out, unsigned long long* id_out, hipGraph_t* graph_out, const hipGraphNode_t** dependencies_out, size_t* numDependencies_out) {
+	_initOnce();
+	struct _hip_device_s *_hip_device;
+	if (stream)
+		_hip_device = stream->multiplex->pDevice;
+	else
+		_hip_device = _ctxDeviceGet ();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipStreamGetCaptureInfo_v2,
+		stream, captureStatus_out, id_out, graph_out, dependencies_out, numDependencies_out));
+	if (graph_out && *graph_out)
+		(*graph_out)->multiplex = _hip_device->multiplex;
+	if (dependencies_out)
+		for (size_t i = 0; i < *numDependencies_out; i++)
+			(*dependencies_out)[i]->multiplex = _hip_device->multiplex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipMemPoolCreate(hipMemPool_t * mem_pool, const hipMemPoolProps * pool_props)
+{
+	_initOnce ();
+	_HIPLD_CHECK_PTR(pool_props);
+	struct _hip_device_s *_hip_device = _ctxDeviceGet ();
+	if (pool_props->location.type == hipMemLocationTypeDevice) {
+		_HIPLD_CHECK_DEVICEID(pool_props->location.id);
+		if (_deviceArray[pool_props->location.id]->pDriver != _hip_device->pDriver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+		((hipMemAccessDesc *)pool_props)->location.id = _deviceArray[pool_props->location.id]->driverIndex;
+	}
+	hipError_t _hip_err = _HIPLD_DISPATCH(_hip_device, hipMemPoolCreate,
+		mem_pool, pool_props);
+	if (pool_props->location.type == hipMemLocationTypeDevice)
+		((hipMemAccessDesc *)pool_props)->location.id = _hip_device->pDriver->pDevices[pool_props->location.id].loaderIndex;
+	_HIPLD_CHECK_ERR(_hip_err);
+	if (mem_pool && *mem_pool)
+		(*mem_pool)->multiplex = _hip_device->multiplex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipMemPoolSetAccess(hipMemPool_t mem_pool, const hipMemAccessDesc * desc_list, size_t count)
+{
+	_initOnce ();
+	if (!count)
+		_HIPLD_RETURN(hipSuccess);
+	_HIPLD_CHECK_PTR(desc_list);
+	struct _hip_driver_s *_hip_driver = mem_pool->multiplex->pDriver;
+	for (size_t i = 0; i < count; i++) {
+		if (desc_list[i].location.type == hipMemLocationTypeDevice) {
+			_HIPLD_CHECK_DEVICEID(desc_list[i].location.id);
+			if (_hip_driver != _deviceArray[desc_list[i].location.id]->pDriver)
+				_HIPLD_RETURN(hipErrorInvalidDevice);
+		}
+	}
+	for (size_t i = 0; i < count; i++)
+		if (desc_list[i].location.type == hipMemLocationTypeDevice)
+			((hipMemAccessDesc *)desc_list)[i].location.id = _deviceArray[desc_list[i].location.id]->driverIndex;
+	hipError_t _hip_err = _HIPLD_DISPATCH(mem_pool, hipMemPoolSetAccess,
+		mem_pool, desc_list, count);
+	for (size_t i = 0; i < count; i++)
+		if (desc_list[i].location.type == hipMemLocationTypeDevice)
+			((hipMemAccessDesc *)desc_list)[i].location.id = _hip_driver->pDevices[desc_list[i].location.id].loaderIndex;
+	_HIPLD_RETURN(_hip_err);
+}
+
+hipError_t
+hipMemPoolGetAccess(hipMemAccessFlags * flags, hipMemPool_t mem_pool, hipMemLocation * location) {
+	_initOnce ();
+	_HIPLD_CHECK_PTR(location);
+	struct _hip_driver_s *_hip_driver = mem_pool->multiplex->pDriver;
+	if (location->type == hipMemLocationTypeDevice) {
+		_HIPLD_CHECK_DEVICEID(location->id);
+		if (_deviceArray[location->id]->pDriver != _hip_driver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+		location->id = _deviceArray[location->id]->driverIndex;
+	}
+	hipError_t _hip_err = _HIPLD_DISPATCH(mem_pool, hipMemPoolGetAccess,
+		flags, mem_pool, location);
+	if (location->type == hipMemLocationTypeDevice)
+		location->id = _hip_driver->pDevices[location->id].loaderIndex;
+	_HIPLD_RETURN(_hip_err);
+}
+
+hipError_t
+hipMemCreate(hipMemGenericAllocationHandle_t * handle, size_t size, const hipMemAllocationProp * prop, unsigned long long int flags) {
+	_initOnce ();
+	_HIPLD_CHECK_PTR(prop);
+	struct _hip_device_s *_hip_device = _ctxDeviceGet ();
+	struct _hip_driver_s *_hip_driver = _hip_device->pDriver;
+	if (prop->location.type == hipMemLocationTypeDevice) {
+		_HIPLD_CHECK_DEVICEID(prop->location.id);
+		if (_deviceArray[prop->location.id]->pDriver != _hip_driver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+		((hipMemAllocationProp *)prop)->location.id = _deviceArray[prop->location.id]->driverIndex;
+	}
+	hipError_t _hip_err = _HIPLD_DISPATCH (_hip_device, hipMemCreate,
+		handle, size, prop, flags);
+	if (prop->location.type == hipMemLocationTypeDevice)
+		((hipMemAllocationProp *)prop)->location.id = _hip_driver->pDevices[prop->location.id].loaderIndex;
+	_HIPLD_CHECK_ERR(_hip_err);
+	if (handle && *handle)
+		(*handle)->multiplex = _hip_device->multiplex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipMemGetAccess(unsigned long long* flags, const hipMemLocation* location, void* ptr) {
+	_initOnce ();
+	_HIPLD_CHECK_PTR(location);
+	struct _hip_driver_s *_hip_driver = _ctxDeviceGet()->pDriver;
+	if (location->type == hipMemLocationTypeDevice) {
+		_HIPLD_CHECK_DEVICEID(location->id);
+		if (_deviceArray[location->id]->pDriver != _hip_driver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+		((hipMemLocation *)location)->id = _deviceArray[location->id]->driverIndex;
+	}
+	hipError_t _hip_err = _HIPLD_DISPATCH(_ctxDeviceGet(), hipMemGetAccess,
+		flags, location, ptr);
+	if (location->type == hipMemLocationTypeDevice)
+		((hipMemLocation *)location)->id = _hip_driver->pDevices[location->id].loaderIndex;
+	_HIPLD_RETURN(_hip_err);
+}
+
+hipError_t
+hipMemGetAllocationGranularity(size_t* granularity, const hipMemAllocationProp* prop, hipMemAllocationGranularity_flags option) {
+	_initOnce ();
+	_HIPLD_CHECK_PTR(prop);
+	struct _hip_device_s *_hip_device = _ctxDeviceGet ();
+	struct _hip_driver_s *_hip_driver = _hip_device->pDriver;
+	if (prop->location.type == hipMemLocationTypeDevice) {
+		_HIPLD_CHECK_DEVICEID(prop->location.id);
+		if (_deviceArray[prop->location.id]->pDriver != _hip_driver)
+			_HIPLD_RETURN(hipErrorInvalidDevice);
+		((hipMemAllocationProp *)prop)->location.id = _deviceArray[prop->location.id]->driverIndex;
+	}
+	hipError_t _hip_err = _HIPLD_DISPATCH (_hip_device, hipMemGetAllocationGranularity,
+		granularity, prop, option);
+	if (prop->location.type == hipMemLocationTypeDevice)
+		((hipMemAllocationProp *)prop)->location.id = _hip_driver->pDevices[prop->location.id].loaderIndex;
+	_HIPLD_RETURN(_hip_err);
+}
+
+hipError_t
+hipMemGetAllocationPropertiesFromHandle(hipMemAllocationProp* prop, hipMemGenericAllocationHandle_t handle) {
+	_initOnce ();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(handle, hipMemGetAllocationPropertiesFromHandle,
+		prop, handle));
+	if (prop->location.type == hipMemLocationTypeDevice)
+		((hipMemAllocationProp *)prop)->location.id = handle->multiplex->pDriver->pDevices[prop->location.id].loaderIndex;
+	_HIPLD_RETURN(hipSuccess);
+}
+
+hipError_t
+hipMemSetAccess(void* ptr, size_t size, const hipMemAccessDesc* desc, size_t count) {
+	_initOnce ();
+	_HIPLD_CHECK_PTR(desc);
+	struct _hip_driver_s *_hip_driver = _ctxDeviceGet()->pDriver;
+	for (size_t i = 0; i < count; i++) {
+		if (desc[i].location.type == hipMemLocationTypeDevice) {
+			_HIPLD_CHECK_DEVICEID(desc[i].location.id);
+			if (_hip_driver != _deviceArray[desc[i].location.id]->pDriver)
+				_HIPLD_RETURN(hipErrorInvalidDevice);
+		}
+	}
+	for (size_t i = 0; i < count; i++)
+		if (desc[i].location.type == hipMemLocationTypeDevice)
+			((hipMemAccessDesc *)desc)[i].location.id = _deviceArray[desc[i].location.id]->driverIndex;
+	hipError_t _hip_err = _HIPLD_DISPATCH(_ctxDeviceGet(), hipMemSetAccess,
+		ptr, size, desc, count);
+	for (size_t i = 0; i < count; i++)
+		if (desc[i].location.type == hipMemLocationTypeDevice)
+			((hipMemAccessDesc *)desc)[i].location.id = _hip_driver->pDevices[desc[i].location.id].loaderIndex;
+	_HIPLD_RETURN(_hip_err);
+}
+
+hipError_t
+hipStreamGetCaptureInfo_v2_spt(hipStream_t stream, hipStreamCaptureStatus* captureStatus_out, unsigned long long* id_out, hipGraph_t* graph_out, const hipGraphNode_t** dependencies_out, size_t* numDependencies_out) {
+	_initOnce();
+	struct _hip_device_s *_hip_device;
+	if (stream)
+		_hip_device = stream->multiplex->pDevice;
+	else
+		_hip_device = _ctxDeviceGet ();
+	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipStreamGetCaptureInfo_v2,
+		stream, captureStatus_out, id_out, graph_out, dependencies_out, numDependencies_out));
+	if (graph_out && *graph_out)
+		(*graph_out)->multiplex = _hip_device->multiplex;
+	if (dependencies_out)
+		for (size_t i = 0; i < *numDependencies_out; i++)
+			(*dependencies_out)[i]->multiplex = _hip_device->multiplex;
+	_HIPLD_RETURN(hipSuccess);
 }
 
 void **
