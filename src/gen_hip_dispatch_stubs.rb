@@ -55,7 +55,7 @@ EOF
         struct _hip_device_s * _hip_device = _deviceArray[index];
 	#{dispatch["name"]} = _hip_device->driverHandle;
 EOF
-  when "hipEvent_t", "hipCtx_t", "hipModule_t", "hipFunction_t", "hiprtcProgram", "hiprtcLinkState", "hipTextureObject_t", "hipGraph_t", "hipGraphNode_t", "hipGraphExec_t", "hipGraphicsResource_t", "hipMemPool_t", "hipMemGenericAllocationHandle_t"
+  when "hipEvent_t", "hipCtx_t", "hipModule_t", "hipFunction_t", "hiprtcProgram", "hiprtcLinkState", "hipTextureObject_t", "hipGraph_t", "hipGraphNode_t", "hipGraphExec_t", "hipGraphicsResource_t", "hipMemPool_t", "hipMemGenericAllocationHandle_t", "hipSurfaceObject_t", "hipUserObject_t"
     multiplex = dispatch["name"]
   when "hipStream_t"
     multiplex = "_hip_device"

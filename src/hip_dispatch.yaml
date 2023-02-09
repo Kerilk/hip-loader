@@ -99,9 +99,9 @@ hipEventSynchronize:
 #hipExtLaunchMultiKernelMultiDevice
 hipExtMallocWithFlags:
   type: :current_device
-hipExtModuleLaunchKernel:
-  type: hipStream_t
-  name: hStream
+#hipExtModuleLaunchKernel:
+#  type: hipStream_t
+#  name: hStream
 hipExtLaunchKernel:
   type: hipStream_t
   name: stream
@@ -605,11 +605,21 @@ hipTexObjectGetResourceViewDesc:
 hipTexObjectGetTextureDesc:
   type: hipTextureObject_t
   name: texObject
-#_ZN8hip_impl22hipLaunchKernelGGLImplEmRK4dim3S2_jP12ihipStream_tPPv
-#_Z22hipCreateSurfaceObjectPP13__hip_surfacePK15hipResourceDesc
-#_Z23hipDestroySurfaceObjectP13__hip_surface
-#_Z24hipHccModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_
-#_Z24hipExtModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_j
+_ZN8hip_impl22hipLaunchKernelGGLImplEmRK4dim3S2_jP12ihipStream_tPPv:
+  type: hipStream_t
+  name: stream
+_Z22hipCreateSurfaceObjectPP13__hip_surfacePK15hipResourceDesc:
+  type: :current_device
+  create: pSurfObject
+_Z23hipDestroySurfaceObjectP13__hip_surface:
+  type: hipSurfaceObject_t
+  name: surfaceObject
+_Z24hipHccModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_:
+  type: hipStream_t
+  name: hStream
+_Z24hipExtModuleLaunchKernelP18ihipModuleSymbol_tjjjjjjmP12ihipStream_tPPvS4_P11ihipEvent_tS6_j:
+  type: hipStream_t
+  name: hStream
 hipGetCmdName:
   type: :current_device
 hipExtStreamCreateWithCUMask:
@@ -1124,3 +1134,35 @@ hipDrvGetErrorName:
   type: :current_device
 hipDrvGetErrorString:
   type: :current_device
+hipUserObjectCreate:
+  type: :current_device
+  create: object_out
+hipUserObjectRelease:
+  type: hipUserObject_t
+  name: object
+hipUserObjectRetain:
+  type: hipUserObject_t
+  name: object
+hipGraphRetainUserObject:
+  type: hipGraph_t
+  name: graph
+hipGraphReleaseUserObject:
+  type: hipGraph_t
+  name: graph
+hipLaunchHostFunc:
+  type: hipStream_t
+  name: stream
+hipLaunchHostFunc_spt:
+  type: hipStream_t
+  name: stream
+hipRegisterTracerCallback:
+  type: :current_device
+#hipGraphDebugDotPrint:
+#  type: hipGraph_t
+#  name: graph
+#hipGraphKernelNodeCopyAttributes:
+#hipGraphNodeGetEnabled:
+#hipGraphNodeSetEnabled:
+#hipGraphUpload:
+#  type: hipGraphExec_t
+#  name: graphExec

@@ -8,66 +8,27 @@
 #include <hip/hiprtc.h>
 #include "hip_dispatch.h"
 
-struct ihipCtx_t {
-	struct _multiplex_s *multiplex;
-};
+#define _HIPLD_DEFINE_HIP_STRUCT(name)  \
+struct name {                           \
+	struct _multiplex_s *multiplex; \
+}
 
-struct ihipStream_t {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipModule_t {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipModuleSymbol_t {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipMemPoolHandle_t {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipEvent_t {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipGraph {
-	struct _multiplex_s *multiplex;
-};
-
-struct hipGraphNode {
-	struct _multiplex_s *multiplex;
-};
-
-struct hipGraphExec {
-	struct _multiplex_s *multiplex;
-};
-
-
-struct hipUserObject {
-	struct _multiplex_s *multiplex;
-};
-
-struct __hip_texture {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihiprtcLinkState {
-	struct _multiplex_s *multiplex;
-};
-
-struct _hiprtcProgram {
-	struct _multiplex_s *multiplex;
-};
-
-struct _hipGraphicsResource {
-	struct _multiplex_s *multiplex;
-};
-
-struct ihipMemGenericAllocationHandle {
-	struct _multiplex_s *multiplex;
-};
+_HIPLD_DEFINE_HIP_STRUCT(ihipCtx_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipStream_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipModule_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipModuleSymbol_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipMemPoolHandle_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipEvent_t);
+_HIPLD_DEFINE_HIP_STRUCT(ihipGraph);
+_HIPLD_DEFINE_HIP_STRUCT(hipGraphNode);
+_HIPLD_DEFINE_HIP_STRUCT(hipGraphExec);
+_HIPLD_DEFINE_HIP_STRUCT(hipUserObject);
+_HIPLD_DEFINE_HIP_STRUCT(__hip_texture);
+_HIPLD_DEFINE_HIP_STRUCT(__hip_surface);
+_HIPLD_DEFINE_HIP_STRUCT(ihiprtcLinkState);
+_HIPLD_DEFINE_HIP_STRUCT(_hiprtcProgram);
+_HIPLD_DEFINE_HIP_STRUCT(_hipGraphicsResource);
+_HIPLD_DEFINE_HIP_STRUCT(ihipMemGenericAllocationHandle);
 
 struct _hip_device_s {
 	struct _multiplex_s   *multiplex;
@@ -1003,11 +964,13 @@ static inline uint32_t __convert_float_to_half(float a) {
   return s | v;
 }
 
+__attribute__((weak))
 float
 __gnu_h2f_ieee(unsigned short h) {
   return __convert_half_to_float((uint32_t)h);
 }
 
+__attribute__((weak))
 unsigned short
 __gnu_f2h_ieee(float f) {
   return (unsigned short)__convert_float_to_half(f);

@@ -28,6 +28,8 @@ $spec["functions"].each { |f|
       ret = "hipErrorNotSupported"
     elsif f.type.type.name == "hiprtcResult"
       ret = "HIPRTC_ERROR_INTERNAL_ERROR"
+    elsif f.type.type.name == "size_t"
+      ret = 0
     end
   end
   puts "	return #{ret};"
@@ -84,12 +86,16 @@ static hipError_t
 _fillDriverDispatch(struct _hip_driver_s *pDriver) {
 EOF
 
-$spec["functions"].each { |f|
+load_block = lambda { |name|
   puts <<EOF
-	pDriver->dispatch.#{f.name} = (#{f.name}_t *)(intptr_t)dlsym(pDriver->pLibrary, \"#{f.name}\");
-	if (!pDriver->dispatch.#{f.name})
-		pDriver->dispatch.#{f.name} = &#{f.name}_unimp;
+	pDriver->dispatch.#{name} = (#{name}_t *)(intptr_t)dlsym(pDriver->pLibrary, \"#{name}\");
+	if (!pDriver->dispatch.#{name})
+		pDriver->dispatch.#{name} = &#{name}_unimp;
 EOF
+}
+
+$spec["functions"].each { |f|
+  load_block.call(f.name)
 }
 
 puts <<EOF
