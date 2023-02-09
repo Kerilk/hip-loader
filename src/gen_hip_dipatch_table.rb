@@ -62,6 +62,8 @@ puts YAMLCAst::Struct.new(name: "_hip_dipatch_s", members: $spec["functions"].ma
 
 puts <<EOF
 
+typedef void * hipGetFunc_t(const char *fName);
+
 struct _hip_device_s;
 struct _hip_driver_s;
 // Instance layers can be added later
@@ -77,10 +79,18 @@ struct _hip_driver_s {
 	struct _hip_device_s  *pDevices;
 	hipGetDeviceCount_t   *hipGetDeviceCount;
 	hipDeviceGet_t        *hipDeviceGet;
-//	hipGetFunc_t          *hipGetFunc; //should be one of the only exposed
+	hipGetFunc_t          *hipGetFunc; //should be one of the only exposed
 	struct _hip_dipatch_s  dispatch;
 	struct _hip_driver_s  *pNext;
 };
+
+static inline intptr_t
+_hipld_driver_get_function(struct _hip_driver_s *pDriver, const char *fName) {
+	if (pDriver->hipGetFunc)
+		return (intptr_t)pDriver->hipGetFunc(fName);
+	else
+		return (intptr_t)dlsym(pDriver->pLibrary, fName);
+}
 
 static hipError_t
 _fillDriverDispatch(struct _hip_driver_s *pDriver) {
@@ -88,7 +98,7 @@ EOF
 
 load_block = lambda { |name|
   puts <<EOF
-	pDriver->dispatch.#{name} = (#{name}_t *)(intptr_t)dlsym(pDriver->pLibrary, \"#{name}\");
+	pDriver->dispatch.#{name} = (#{name}_t *)_hipld_driver_get_function(pDriver, \"#{name}\");
 	if (!pDriver->dispatch.#{name})
 		pDriver->dispatch.#{name} = &#{name}_unimp;
 EOF

@@ -244,8 +244,11 @@ _loadDriver(const char *path) {
 	void *lib = _loadLibrary(path);
 	if (!lib)
 		return;
-	driver.hipGetDeviceCount = (hipGetDeviceCount_t *)(intptr_t)dlsym(lib, "hipGetDeviceCount");
-	driver.hipDeviceGet = (hipDeviceGet_t *)(intptr_t)dlsym(lib, "hipDeviceGet");
+	driver.hipGetFunc = (hipGetFunc_t *)(intptr_t)dlsym(lib, "hipGetFunc");
+	driver.hipGetDeviceCount = (hipGetDeviceCount_t *)
+		_hipld_driver_get_function(&driver, "hipGetDeviceCount");
+	driver.hipDeviceGet = (hipDeviceGet_t *)
+		_hipld_driver_get_function(&driver, "hipDeviceGet");
 	if (!driver.hipGetDeviceCount || !driver.hipDeviceGet)
 		goto error;
 	driver.pLibrary = lib;
