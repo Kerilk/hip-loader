@@ -899,7 +899,7 @@ hipApiName(uint32_t id) {
 hiprtcResult
 hiprtcDestroyProgram(hiprtcProgram* prog) {
 	_initOnce();
-	if (!prog)
+	if (!prog || !*prog)
 		return HIPRTC_ERROR_INVALID_INPUT;
 	_HIPLDRTC_RETURN(_HIPLD_DISPATCH(*prog, hiprtcDestroyProgram, prog));
 }
