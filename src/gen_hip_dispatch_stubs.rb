@@ -60,11 +60,7 @@ EOF
   when "hipStream_t"
     multiplex = "_hip_device"
     puts <<EOF
-	struct _hip_device_s *_hip_device;
-	if (#{dispatch["name"]})
-		_hip_device = #{dispatch["name"]}->multiplex->pDevice;
-	else
-		_hip_device = _ctxDeviceGet();
+	struct _hip_device_s *_hip_device = _get_device_for_stream(#{dispatch["name"]});
 EOF
   when :all_drivers
     puts <<EOF

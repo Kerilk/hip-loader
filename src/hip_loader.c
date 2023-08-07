@@ -199,11 +199,20 @@ do {                                                   \
 #define _HIPLD_DISPATCH(handle, api, ...) _HIPLD_DISPATCH_API(handle, api)(__VA_ARGS__)
 
 static inline int _indexToHandle(int index) {
-  return index;
+	return index;
 }
 
 static inline int _handleToIndex(int handle) {
-  return handle;
+	return handle;
+}
+
+static inline struct _hip_device_s *_get_device_for_stream(hipStream_t stream) {
+	struct _hip_device_s *_hip_device;
+	if (stream && stream != hipStreamPerThread)
+		_hip_device = stream->multiplex->pDevice;
+	else
+		_hip_device = _ctxDeviceGet();
+	return _hip_device;
 }
 
 static hipError_t
@@ -666,11 +675,7 @@ hipGLGetDevices(unsigned int* pHipDeviceCount, int* pHipDevices, unsigned int hi
 hipError_t
 hipStreamGetCaptureInfo_v2(hipStream_t stream, hipStreamCaptureStatus* captureStatus_out, unsigned long long* id_out, hipGraph_t* graph_out, const hipGraphNode_t** dependencies_out, size_t* numDependencies_out) {
 	_initOnce();
-	struct _hip_device_s *_hip_device;
-	if (stream)
-		_hip_device = stream->multiplex->pDevice;
-	else
-		_hip_device = _ctxDeviceGet ();
+	struct _hip_device_s *_hip_device = _get_device_for_stream(stream);
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipStreamGetCaptureInfo_v2,
 		stream, captureStatus_out, id_out, graph_out, dependencies_out, numDependencies_out));
 	if (graph_out && *graph_out)
@@ -842,11 +847,7 @@ hipMemSetAccess(void* ptr, size_t size, const hipMemAccessDesc* desc, size_t cou
 hipError_t
 hipStreamGetCaptureInfo_v2_spt(hipStream_t stream, hipStreamCaptureStatus* captureStatus_out, unsigned long long* id_out, hipGraph_t* graph_out, const hipGraphNode_t** dependencies_out, size_t* numDependencies_out) {
 	_initOnce();
-	struct _hip_device_s *_hip_device;
-	if (stream)
-		_hip_device = stream->multiplex->pDevice;
-	else
-		_hip_device = _ctxDeviceGet ();
+	struct _hip_device_s *_hip_device = _get_device_for_stream(stream);
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(_hip_device, hipStreamGetCaptureInfo_v2,
 		stream, captureStatus_out, id_out, graph_out, dependencies_out, numDependencies_out));
 	if (graph_out && *graph_out)
