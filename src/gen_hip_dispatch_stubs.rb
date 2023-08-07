@@ -69,11 +69,13 @@ EOF
 		return;
 	void *** res = (void ***)modules;
 	struct _hip_driver_s *driver = _driverList;
-	for (int i = 0; i < _hipDriverCount; i++)
+	for (int i = 0; i < _hipDriverCount; i++) {
 		if (res[i]) {
 			modules = res[i];
 			driver->dispatch.#{dispatch_params.first}(#{dispatch_params[1..-1].join(", ")});
 		}
+		driver = driver->pNext;
+        }
 }
 EOF
     next

@@ -43,15 +43,15 @@ struct _hip_device_s {
 };
 
 struct _thread_context_s {
-	struct _hip_device_s  *_currentDevice;
-	hipError_t             _lastError;
-	size_t                 _stackSize;
-	size_t                 _stackCapacity;
-	hipCtx_t              *_ctxStack;
+	int         _currentDeviceHandle;
+	hipError_t  _lastError;
+	size_t      _stackSize;
+	size_t      _stackCapacity;
+	hipCtx_t   *_ctxStack;
 };
 
 static __thread  struct _thread_context_s _thread_context =
-	{NULL, hipErrorNotInitialized, 0, 0, NULL};
+	{0, hipErrorNotInitialized, 0, 0, NULL};
 
 static struct _hip_driver_s  *_driverList     = NULL;
 static int                    _hipDriverCount = 0;
@@ -67,22 +67,24 @@ static inline int _ctxStackEmpty() {
 
 static inline void
 _ctxDeviceSet(struct _hip_device_s *dev) {
-	_thread_context._currentDevice = dev;
+	_thread_context._currentDeviceHandle = dev->loaderHandle;
 }
 
 static inline void
 _ctxDeviceSetID(int dev) {
-	_thread_context._currentDevice = _deviceArray[dev];
+	_thread_context._currentDeviceHandle = dev;
 }
 
 static inline struct _hip_device_s *
 _ctxDeviceGet() {
-	return _thread_context._currentDevice;
+	int handle = _thread_context._currentDeviceHandle;
+	struct _hip_device_s *pdev = _hipDeviceCount ? _deviceArray[handle] : NULL;
+	return pdev;
 }
 
 static inline int
 _ctxDeviceGetID() {
-	return _thread_context._currentDevice->loaderHandle;
+	return _thread_context._currentDeviceHandle;
 }
 
 #define _HIPLD_MIN(a, b) ((a)<(b) ? (a) : (b) )
@@ -125,7 +127,7 @@ _ctxStackTop() {
 
 static void *
 _loadLibrary(const char *libraryName) {
-	return dlopen(libraryName, RTLD_LAZY|RTLD_LOCAL);
+	return dlopen(libraryName, RTLD_LAZY|RTLD_LOCAL|RTLD_DEEPBIND);
 }
 
 static char *_get_next(char *paths) {
@@ -254,13 +256,13 @@ _loadDriver(const char *path) {
 	if (!lib)
 		return;
 	driver.hipGetFunc = (hipGetFunc_t *)(intptr_t)dlsym(lib, "hipGetFunc");
+	driver.pLibrary = lib;
 	driver.hipGetDeviceCount = (hipGetDeviceCount_t *)
 		_hipld_driver_get_function(&driver, "hipGetDeviceCount");
 	driver.hipDeviceGet = (hipDeviceGet_t *)
 		_hipld_driver_get_function(&driver, "hipDeviceGet");
 	if (!driver.hipGetDeviceCount || !driver.hipDeviceGet)
 		goto error;
-	driver.pLibrary = lib;
 	if (hipSuccess != driver.hipGetDeviceCount(&driver.deviceCount) || driver.deviceCount == 0)
 		goto error;
 	if (hipSuccess != _fillDriverDispatch(&driver))
@@ -297,7 +299,7 @@ _initReal() {
 			struct _hip_device_s *pDevice = _deviceList;
 			int indx = 0;
 			while (pDevice && indx < _hipDeviceCount) {
-				_deviceArray[indx] = pDevice;
+				_deviceArray[_hipDeviceCount - indx - 1] = pDevice;
 				indx++;
 				pDevice = pDevice->pNext;
 			}
@@ -879,9 +881,11 @@ __hipUnregisterFatBinary(void **modules) {
 		return;
 	void *** res = (void ***)modules;
 	struct _hip_driver_s *driver = _driverList;
-	for (int i = 0; i < _hipDriverCount; i++)
+	for (int i = 0; i < _hipDriverCount; i++) {
 		if (res[i])
 			driver->dispatch.__hipUnregisterFatBinary(res[i]);
+		driver = driver->pNext;
+	}
 	free(res);
 }
 

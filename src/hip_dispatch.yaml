@@ -379,6 +379,7 @@ hipStreamWaitEvent:
   name: stream
 __hipPopCallConfiguration:
   type: :current_device
+  create: stream
 __hipPushCallConfiguration:
   type: :current_device
 #__hipRegisterFatBinary
