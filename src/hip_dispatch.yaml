@@ -83,9 +83,10 @@ hipDriverGetVersion:
 hipEventDestroy:
   type: hipEvent_t
   name: event
-hipEventElapsedTime:
-  type: hipEvent_t
-  name: start
+# Bug in tests: https://github.com/ROCm/hip-tests/issues/441
+#hipEventElapsedTime:
+#  type: hipEvent_t
+#  name: start
 hipEventQuery:
   type: hipEvent_t
   name: event
@@ -407,9 +408,7 @@ hipLaunchKernel:
   type: hipStream_t
   name: stream
 #hipApiName
-hipKernelNameRef:
-  type: hipFunction_t
-  name: f
+#hipKernelNameRef
 hipKernelNameRefByPtr:
   type: hipStream_t
   name: stream
@@ -781,6 +780,7 @@ hipGraphExecKernelNodeSetParams:
 hipGraphAddEmptyNode:
   type: hipGraph_t
   name: graph
+  create: pGraphNode
 hipStreamUpdateCaptureDependencies:
   type: hipStream_t
   name: stream

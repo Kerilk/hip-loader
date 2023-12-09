@@ -51,7 +51,7 @@ struct _thread_context_s {
 };
 
 static __thread  struct _thread_context_s _thread_context =
-	{0, hipErrorNotInitialized, 0, 0, NULL};
+	{0, hipSuccess, 0, 0, NULL};
 
 static struct _hip_driver_s  *_driverList     = NULL;
 static int                    _hipDriverCount = 0;
@@ -157,11 +157,11 @@ do {                                    \
 		_HIPLDRTC_RETURN(_err); \
 } while(0)
 
-#define _HIPLD_RETURN(err)                 \
-do {                                       \
-	hipError_t _err = (err);           \
-	_thread_context._lastError = _err; \
-	return _err;                       \
+#define _HIPLD_RETURN(err)                     \
+do {                                           \
+	hipError_t _err_ret = (err);           \
+	_thread_context._lastError = _err_ret; \
+	return _err_ret;                       \
 } while(0)
 
 #define _HIPLD_CHECK_ERR(err)        \
@@ -179,7 +179,7 @@ do {                                             \
 
 #define _HIPLD_CHECK_DEVICEID(devid)                  \
 do {                                                  \
-	if (devid < 0 || devid > _hipDeviceCount)     \
+	if (devid < 0 || devid >= _hipDeviceCount)     \
 		_HIPLD_RETURN(hipErrorInvalidDevice); \
 } while(0)
 
@@ -187,6 +187,12 @@ do {                                                  \
 do {                                                 \
 	if (!ptr)                                    \
 		_HIPLD_RETURN(hipErrorInvalidValue); \
+} while(0)
+
+#define _HIPLD_CHECK_HANDLE(h)                        \
+do {                                                  \
+	if (!h)                                       \
+		_HIPLD_RETURN(hipErrorInvalidHandle); \
 } while(0)
 
 #define _HIPLD_CHECK_CTX(ctx)                          \
@@ -316,6 +322,8 @@ hipError_t
 hipInit(unsigned int flags) {
 	_flags = flags;
 	_initOnce();
+	if (flags)
+		_HIPLD_RETURN(hipErrorInvalidValue);
 	_HIPLD_CHECK_DEVICE();
 	_HIPLD_RETURN(hipSuccess);
 }
@@ -378,6 +386,7 @@ hipChooseDevice(int* device, const hipDeviceProp_t* prop) {
 			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
 		}
+		driver = driver->pNext;
 	}
 	_HIPLD_RETURN(hipErrorInvalidValue);
 }
@@ -396,6 +405,7 @@ hipDeviceGetByPCIBusId(int* device, const char* pciBusId) {
 			*device = driver->pDevices[*device].loaderIndex;
 			_HIPLD_RETURN(hipSuccess);
 		}
+		driver = driver->pNext;
 	}
 	_HIPLD_RETURN(hipErrorInvalidValue);
 }
@@ -569,6 +579,14 @@ hipEventCreateWithFlags(hipEvent_t* event, unsigned flags) {
 	_HIPLD_RETURN(hipSuccess);
 }
 
+hipError_t hipEventElapsedTime(float *ms, hipEvent_t start, hipEvent_t stop)
+{
+	_initOnce();
+	_HIPLD_CHECK_PTR(ms);
+	_HIPLD_CHECK_HANDLE(start);
+	_HIPLD_RETURN(_HIPLD_DISPATCH(start, hipEventElapsedTime, ms, start, stop));
+}
+
 hipError_t
 hipExtGetLinkTypeAndHopCount(int device1, int device2, uint32_t* linktype, uint32_t* hopcount) {
 	_initOnce();
@@ -717,6 +735,7 @@ hipMemPoolSetAccess(hipMemPool_t mem_pool, const hipMemAccessDesc * desc_list, s
 	if (!count)
 		_HIPLD_RETURN(hipSuccess);
 	_HIPLD_CHECK_PTR(desc_list);
+	_HIPLD_CHECK_HANDLE(mem_pool);
 	struct _hip_driver_s *_hip_driver = mem_pool->multiplex->pDriver;
 	for (size_t i = 0; i < count; i++) {
 		if (desc_list[i].location.type == hipMemLocationTypeDevice) {
@@ -740,6 +759,7 @@ hipError_t
 hipMemPoolGetAccess(hipMemAccessFlags * flags, hipMemPool_t mem_pool, hipMemLocation * location) {
 	_initOnce ();
 	_HIPLD_CHECK_PTR(location);
+	_HIPLD_CHECK_HANDLE(mem_pool);
 	struct _hip_driver_s *_hip_driver = mem_pool->multiplex->pDriver;
 	if (location->type == hipMemLocationTypeDevice) {
 		_HIPLD_CHECK_DEVICEID(location->id);
@@ -816,6 +836,7 @@ hipMemGetAllocationGranularity(size_t* granularity, const hipMemAllocationProp* 
 hipError_t
 hipMemGetAllocationPropertiesFromHandle(hipMemAllocationProp* prop, hipMemGenericAllocationHandle_t handle) {
 	_initOnce ();
+	_HIPLD_CHECK_HANDLE(handle);
 	_HIPLD_CHECK_ERR(_HIPLD_DISPATCH(handle, hipMemGetAllocationPropertiesFromHandle,
 		prop, handle));
 	if (prop->location.type == hipMemLocationTypeDevice)
@@ -860,6 +881,14 @@ hipStreamGetCaptureInfo_v2_spt(hipStream_t stream, hipStreamCaptureStatus* captu
 	_HIPLD_RETURN(hipSuccess);
 }
 
+const char *hipKernelNameRef(const hipFunction_t f)
+{
+	_initOnce();
+	if (!f)
+		_RETURN(NULL);
+	_RETURN(_HIPLD_DISPATCH(f, hipKernelNameRef, f));
+}
+
 void **
 __hipRegisterFatBinary(const void *Data) {
 	_initOnce();
@@ -897,6 +926,7 @@ hipApiName(uint32_t id) {
 		const char *name = driver->dispatch.hipApiName(id);
 		if (name)
 			return name;
+		driver = driver->pNext;
 	}
 	return NULL;
 }
